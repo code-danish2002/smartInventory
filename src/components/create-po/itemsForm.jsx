@@ -14,6 +14,7 @@ export default function ItemsForm({ isOpen, initialValues = {}, onSave, onCancel
         item_part_id: '',
         description: descriptions?.[initialValues?.item_part_id] || '',
         item_serial_number: [],
+        remarks: '',
         item_status: '',
         item_location: '',
         item_type: '',
@@ -21,7 +22,6 @@ export default function ItemsForm({ isOpen, initialValues = {}, onSave, onCancel
         item_model: '',
         item_part: '',
     });
-    console.log('itemDetails', itemDetails, initialValues);
     const [itemOptions, setItemOptions] = useState({
         item_type_id: [],
         item_make_id: [],
@@ -255,7 +255,7 @@ export default function ItemsForm({ isOpen, initialValues = {}, onSave, onCancel
                     </div>
 
                     {/* Serial Number Section */}
-                    <div className="bg-slate-100 p-4 rounded-lg">
+                    <div className="bg-slate-100 p-3 rounded-lg">
                         <h3 className="text-lg font-medium text-gray-800 mb-3">Item Serial Number</h3>
                         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-8">
                             <div className="flex items-center space-x-4 mb-4 sm:mb-0">
@@ -309,6 +309,14 @@ export default function ItemsForm({ isOpen, initialValues = {}, onSave, onCancel
                         </div>
                     </div>
 
+                    <div className="bg-slate-100 p-3 rounded-lg">
+                        <h3 className="text-lg font-medium text-gray-800 mb-3">Remarks</h3>
+                        <textarea
+                            className="w-full p-2 border rounded"
+                            value={itemDetails.remarks || ''}
+                            onChange={e => setItemDetails(d => ({ ...d, remarks: e.target.value }))}
+                        />
+                    </div>
 
                     <div className="flex flex-wrap justify-end gap-2 mt-4">
                         <button type="button" onClick={onCancel} className="min-w-[100px] px-4 py-1 border rounded border-gray-300 hover:bg-gray-300">Cancel</button>

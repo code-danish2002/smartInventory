@@ -1,8 +1,6 @@
 // src/App.jsx
-
-import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/authContext.jsx';
+import { useAuth } from './context/authContext.jsx';
 import { ShowDetails } from './components/showDetails.jsx';
 import CreatePO from './components/create-po/createPO.jsx';
 import Home from './components/homePage.jsx';
@@ -21,16 +19,14 @@ const App = () => {
   }
 
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-        <Route path="/login" element={<PublicRoute><Lander /></PublicRoute>} />
-        <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
-        <Route path="/showData" element={<PrivateRoute><ShowDetails /></PrivateRoute>} />
-        <Route path="/create-new-po" element={<PrivateRoute><CreatePO /></PrivateRoute>} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </AuthProvider>
+    <Routes>
+      <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path="/login" element={<PublicRoute><Lander /></PublicRoute>} />
+      <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+      <Route path="/showData" element={<PrivateRoute><ShowDetails /></PrivateRoute>} />
+      <Route path="po-inspection/:task" element={<PrivateRoute><CreatePO /></PrivateRoute>} />
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 };
 

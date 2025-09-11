@@ -55,7 +55,7 @@ const Home = () => {
     }, [currentRender, currentPage, pageSize, refreshTableData]);
 
     const handlePoForm = () => {
-        navigate("/create-new-po", { state: { defaultValues: {}, task: "Create" } });
+        navigate("/po-inspection/create", { state: { defaultValues: {}, task: "Create Inspection" } });
         setOpenDrawer(false);
     };
 

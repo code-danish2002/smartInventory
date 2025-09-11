@@ -2,8 +2,9 @@
 import { useState, useMemo, isValidElement } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import TableHeader from './tableHeader.jsx';
-import { CicsSitOverrides, DeleteIcon, Edit, Inspection, Pdf01, PendingActions, PreviewFill, StatusChange, TaskApproved, Transaction, UploadIcon } from '../utils/icons.jsx';
+import { CicsSitOverrides, DeleteIcon, Edit, Inspection, Live, Pdf01, PendingActions, PreviewFill, StatusChange, TaskApproved, Transaction, UploadIcon } from '../utils/icons.jsx';
 import { AiOutlineCheckCircle } from 'react-icons/ai';
+import { TbListDetails } from "react-icons/tb";
 import MainModal from '../modals/parentModal.jsx';
 import openPdf from '../config/openPdf.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +13,8 @@ import { FaShippingFast } from 'react-icons/fa';
 import UploadPDF from '../modals/pdfUpload.jsx';
 import SelectItemsModal from '../modals/selectItems.jsx';
 import api from '../api/apiCall.js';
+import { SendIcon } from 'lucide-react';
+import { useToast } from '../context/toastProvider.jsx';
 
 export default function MyGrid({ title, loading, data, total, currentPage, pageSize, onPageChange, onPageSizeChange, onSearchTermChange, refreshData }) {
   const [sortModel, setSortModel] = useState([]);
@@ -20,6 +23,7 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
   const [openInspectionModal, setOpenInspectionModal] = useState({ open: false, po_id: null });
   const [openDispatchModal, setOpenDispatchModal] = useState({ isOpen: false, po_line_item_id: null, po_item_details_id: null });
   const [openUploadModal, setOpenUploadModal] = useState({ open: false, po_id: null });
+  const addToast = useToast();
   const navigate = useNavigate();
 
   const columns = useMemo(() => {
@@ -118,6 +122,20 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
             )
           }
 
+          if (cellValue === 'Spare Inventory'){
+            return (
+              <div title={cellValue} className="flex items-center justify-center mt-1.5">
+                <button
+                  title={cellValue}
+                  onClick={e => { e.stopPropagation(); api.post(`/api/spare_action/${row.po_item_details_id}`, { action: 'live', remarks: '' }).then((res) => { addToast(res); refreshData(); onClose(); }).catch((error) => { addToast(error); onClose(); }); }}
+                  className="inline-block  rounded-lg shadow-md border transition duration-200 ease-in-out text-center leading-normal w-full min-w-[7em] px-[1em] py-[0.5em] bg-sky-200 hover:bg-sky  -100"
+                >
+                  Live <Live className="inline-block ml-2" />
+                </button>
+              </div>
+            )
+          }
+
           if (Array.isArray(cellValue) && cellValue.length > 0 && title === 'PO Re-Fills') {
             return (
               <div title={'Re-Fill PO'} className="flex items-center justify-center w-full h-full">
@@ -167,8 +185,8 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
       "Item Details": [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }],
       'PO Re-Fills': [{ label: 'Line Items', key: 'po_id', name: 'Line Item', action: 'view' }, { label: 'Action', key: 'po_id', name: 'Action', action: 'PO Re-Fills' }],
       'At Store': [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }],
-      'On Site': [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }],
-      'Site Reject': [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }, { label: 'Action', key: 'po_item_details_id', name: 'Dispatch Again', action: 'request-operation' }],
+      'On Site': [{ label: 'Re-Locate', key: 'po_item_details_id', name: 'Re-Locate', action: 'send to location' },{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }],
+      'Site Rejects': [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' },],
       'Firm': [{ label: 'Edit', key: 'firm_id', name: 'Firm', action: 'update' }, { label: 'Delete', key: 'firm_id', name: 'Firm', action: 'delete' }],
       'Stores': [{ label: 'Edit', key: 'store_id', name: 'Stores', action: 'update' }, { label: 'Delete', key: 'store_id', name: 'Stores', action: 'delete' }],
       'All POs': [{ label: 'Line Items', key: 'po_id', name: 'Line Item', action: 'view' },],
@@ -177,6 +195,8 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
       'Model': [{ label: 'Delete', key: 'item_model_id', name: 'Model', action: 'delete' }],
       'Part': [{ label: 'Delete', key: 'item_part_id', name: 'Part', action: 'delete' }],
       'Users': [{ label: 'Edit', key: 'user_id', name: 'Users', action: 'update' },],
+      'Item Requests': [{ label: 'Line Items', key: 'po_id', name: 'Line Item', action: 'view' }, { label: 'Action', key: 'po_id', name: 'Action', action: 'add-item-details' }],
+      'Inventory': [{ label: 'Track History', key: 'po_item_details_id', name: 'Track History', action: 'view-status' }],
     };
 
     extraColumns[title]?.forEach(({ label, name, key, action }) => {
@@ -193,6 +213,8 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
         'delete': <DeleteIcon />,
         'request-operation': <TaskApproved />,
         'line-item-inspection': { icon: <Inspection className="inline-block ml-2" />, label: 'Inspect', bgColor: 'bg-purple-200 hover:bg-purple-100' },
+        'add-item-details': { icon: <TbListDetails className="inline-block ml-2" />, label: 'Add Item', bgColor: 'bg-teal-200 hover:bg-teal-100' },
+        'send to location': { icon: <SendIcon className="inline-block ml-2" />, label: 'Send', bgColor: 'bg-sky-200 hover:bg-sky-100' },
       };
 
       baseColumns.push({
@@ -214,13 +236,23 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
               api.get(`/api/fullPoDataByPoId/${row.po_id}`)
                 .then(response => {
                   const poData = response.data.data;
-                  navigate('/create-new-po', { state: { defaultValues: poData, task: 'Update' } });
+                  navigate('/po-inspection/update', { state: { defaultValues: poData, task: 'Update Inspection' } });
                 }).catch(error => {
                   console.error('Error fetching PO data:', error);
                   alert('Failed to fetch details of PO to be Re-Filled. Please try again later.');
                 });
-              //navigate('/create-new-po', { state: { defaultValues: { ...row }, task: 'Update' } })
-            } else {
+            }
+            else if (action === 'add-item-details') {
+              api.get(`/api/fullPoDataByPoId/${row.po_id}`)
+                .then(response => {
+                  const poData = response.data.data;
+                  navigate('/po-inspection/add', { state: { defaultValues: poData, task: 'Add Item Details' } });
+                }).catch(error => {
+                  console.error('Error fetching PO data:', error);
+                  alert('Failed to fetch details of PO to be Re-Filled. Please try again later.');
+                });
+            }
+             else {
               setShowSubItems({
                 subItem: {
                   params: { ...row, [key]: row[key] },
@@ -244,12 +276,15 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
             )
           }
 
+          const isDisabled = action === 'send to location' && row.action === 'Receive Pending at Site';
+
           return (
             <div title={name} className="flex items-center justify-center w-full h-full">
               <button
                 title={name}
                 onClick={handleClick}
                 className={buttonCss}
+                disabled={isDisabled}
               >
                 {buttonView}
               </button>
@@ -315,7 +350,7 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
   }, [data, filterRows, sortModel]);
 
   const modalTitle = showSubItems?.subItem?.table ?? title
-  console.log('my title', title, 'modalTitle', modalTitle, 'showSubItems', showSubItems);
+  //console.log('my title', title, 'modalTitle', modalTitle, 'showSubItems', showSubItems);
 
   return (
     <div className="flex flex-col p-4 space-y-4 bg-gray-50 rounded-lg w-full mx-auto h-full">
@@ -330,7 +365,7 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
         onAction={refreshData}
       />
 
-      <div className="flex-1 w-full overflow-auto">
+      {processedRows.length > 0 ? <div className="flex-1 w-full overflow-auto">
         <DataGrid
           rows={processedRows}
           columns={columns}
@@ -349,7 +384,6 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
           rowSelection={false}
           onSortModelChange={setSortModel}
           autoHeight={false}
-          initialState={{ columns: { columnVisibilityModel: initialVisibility } }}
           loading={loading}
           sx={{
             '& .MuiDataGrid-root': { border: 'none' },
@@ -357,7 +391,7 @@ export default function MyGrid({ title, loading, data, total, currentPage, pageS
             '& .MuiDataGrid-cell': { whiteSpace: 'normal', wordWrap: 'break-word' },
           }}
         />
-      </div>
+      </div> : <div className="flex-1 flex justify-center items-center text-gray-500">No data found</div>}
       {Boolean(showSubItems) && <MainModal modalName={modalTitle} isOpen={Boolean(showSubItems)} onClose={() => setShowSubItems(null)} type={showSubItems?.action} data={showSubItems?.subItem} onAction={refreshData} />}
       {openInspectionModal.open && <LineItemsInspection isOpen={openInspectionModal.open} onCancel={() => setOpenInspectionModal({ open: false, po_id: '' })} po_id={openInspectionModal.po_id} />}
       {openDispatchModal.isOpen && <SelectItemsModal isOpen={openDispatchModal.isOpen} onClose={() => setOpenDispatchModal({ isOpen: false, po_line_item_id: null, po_item_details_id: null })} onModalSubmit={refreshData} po_line_item_id={openDispatchModal.po_line_item_id} line_item_name={openDispatchModal.line_item_name} po_item_details_id={openDispatchModal.po_item_details_id} />}

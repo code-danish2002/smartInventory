@@ -1,6 +1,7 @@
 // src/context/ToastProvider.jsx
 import React, { createContext, useContext, useState, useCallback } from "react";
 import ShowApiMessage from "../apiResponse.jsx";
+import { v4 as uuidv4 } from 'uuid';
 
 const ToastContext = createContext({ addToast: () => { } });
 
@@ -8,7 +9,7 @@ export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
 
     const addToast = useCallback((message) => {
-        const id = Date.now();
+        const id = uuidv4();
         setToasts(prev => [...prev, { id, message }]);
     }, []);
 
@@ -16,6 +17,7 @@ export function ToastProvider({ children }) {
         setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 
+    console.log('ToastProvider toasts:', toasts);
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
@@ -23,8 +25,9 @@ export function ToastProvider({ children }) {
                 {toasts.map(t => (
                     <ShowApiMessage
                         key={t.id}
+                        id={t.id}
                         message={t.message}
-                        onClose={() => removeToast(t.id)}
+                        onClose={ removeToast }
                     />
                 ))}
             </div>

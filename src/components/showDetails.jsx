@@ -31,6 +31,7 @@ export const ShowDetails = () => {
         10: "On Site",
         11: "On Site",
         12: "Inventory",
+        13: "Item Requests"
     }
 
     useEffect(() => {

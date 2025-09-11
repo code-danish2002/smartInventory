@@ -1,7 +1,6 @@
 import React from "react";
 import {EmailIcon, ProfileDuotone, ReportFormsFill, UserCircleSolid, } from "../utils/icons.jsx";
 import { useAuth } from "../context/authContext.jsx";
-import {jwtDecode} from "jwt-decode";
 
 export default function Header({ openDrawer, setOpenDrawer }) {
     const { token, logout, username, name, email } = useAuth();
@@ -41,8 +40,8 @@ export default function Header({ openDrawer, setOpenDrawer }) {
             </div>
 
             {/* Right Section */}
-            <div className="relative" ref={profileRef}>
-                <button className="px-4 py-1 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-300" onClick={() => setIsProfileOpen(!isProfileOpen)}>
+            <div className="relative flex items-center gap-1" ref={profileRef}>
+                <button className="px-3 py-1 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-sky-300" onClick={() => setIsProfileOpen(!isProfileOpen)}>
                     <UserCircleSolid />
                 </button>
                 {isProfileOpen && (

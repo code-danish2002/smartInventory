@@ -5,9 +5,15 @@ import { PlusCircle } from 'lucide-react';
 import 'inert-polyfill'; // Import the inert polyfill if needed
 import { useAuth } from '../context/authContext.jsx';
 import AddERP from '../modals/add-ERP.jsx';
+import CombinedPdfManager from '../modals/pdfSignUpload.jsx';
+import { AiFillSignature } from "react-icons/ai";
+import { FaInfoCircle } from 'react-icons/fa';
+import ParentModal from '../modals/parentModal.jsx';
 
 const Drawer = ({ open, setOpenDrawer, handlePoForm, currentRender, setCurrentRender }) => {
   const [addErp, setAddErp] = React.useState(false);
+  const [signPdf, setSignPdf] = React.useState(false);
+  const [helpMe, setHelpMe] = React.useState(false);
   const { groups } = useAuth();
   if (!open) {
     return null; // Don't render the drawer if it's not open
@@ -33,17 +39,24 @@ const Drawer = ({ open, setOpenDrawer, handlePoForm, currentRender, setCurrentRe
             </button>
           </div>
 
-          {rightToWrite && <div className="flex flex-col items-center justify-center  p-2">
+          <div className="flex flex-col items-center justify-center  p-2">
+            <button onClick={() => setSignPdf(true)} className='flex flex-row items-center justify-center gap-2 p-4 bg-cyan-100 hover:bg-cyan-200 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'>
+              <AiFillSignature size={24} className="text-gray-500" />
+              <h3 className="text-xl font-semibold text-gray-700">Sign PDF</h3>
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center justify-center  p-2">
             <button onClick={() => setAddErp(true)} className='flex flex-row items-center justify-center gap-2 p-4 bg-cyan-100 hover:bg-cyan-200 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'>
               <PlusCircle size={24} className="text-gray-500" />
               <h3 className="text-xl font-semibold text-gray-700">New ERP</h3>
             </button>
-          </div>}
+          </div>
 
           <div className="flex flex-col items-center justify-center  p-2">
             <button onClick={() => handlePoForm()} className='flex flex-row items-center justify-center gap-2 p-4 bg-blue-100 hover:bg-blue-200 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'>
               <PlusCircle size={24} className="text-gray-500" />
-              <h3 className="text-xl font-semibold text-gray-700">New PO</h3>
+              <h3 className="text-xl font-semibold text-gray-700">Inspection</h3>
             </button>
           </div>
           <div className="flex flex-col items-center justify-center p-2">
@@ -91,12 +104,19 @@ const Drawer = ({ open, setOpenDrawer, handlePoForm, currentRender, setCurrentRe
               Users
             </button>
           </div>}
+          {/* help and  guidelines */}
+          <div className="flex flex-row gap-1 items-center justify-center p-4 border-t">
+            <FaInfoCircle size={16} className="text-gray-500" />
+            <p onClick={() => setHelpMe(true)} className="text-sm text-gray-500 hover:underline hover:text-sky-500 cursor-pointer">Help Me</p>
+          </div>
           <div className="mt-auto flex items-center justify-center p-4 border-t">
             <p className="text-sm text-gray-500">Version 2.0 | &copy; 2025 RCIL.</p>
           </div>
         </div>
-      </div>
+      </div >
       {addErp && (<AddERP isOpen={addErp} onClose={() => setAddErp(false)} />)}
+      {signPdf && (<CombinedPdfManager isOpen={signPdf} onCancel={() => setSignPdf(false)} onSubmit={() => setSignPdf(false)} />)}
+        {helpMe && (<ParentModal modalName={'Help & Support'} isOpen={helpMe} onClose={() => setHelpMe(false)} type={'help&support'} />)}
     </>
   );
 };

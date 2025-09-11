@@ -79,22 +79,19 @@ const AddSubItem = ({ subItemName, operation, defaultValues, onCancel, AfterActi
         }
     }, [subItemName]);
 
-    console.log('subItemDetails', subItemDetails, 'options', options,);
-
-
+    //console.log('subItemDetails', subItemDetails, 'options', options,);
 
     async function handleSubmit(e) {
         e.preventDefault();
-        console.log(body, 'body');
         const thisOperation = operation === 'create' ? 'post' : 'put';
         setLoading(true);
-        console.log('AddSubItem elements:', elements, 'url:', url, 'params:', params);
         try {
             const response = await api[thisOperation](url, body, { params });
-            addToast(response.data.message, 'success');
+            console.log('response', response);
+            addToast(response);
             AfterAction();
         } catch (error) {
-            addToast(error.response?.data?.message || error.message || error);
+            addToast( error);
         } finally {
             setLoading(false);
             onCancel();

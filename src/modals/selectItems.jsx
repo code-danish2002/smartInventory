@@ -1,11 +1,10 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Select from "react-select";
 import api from "../api/apiCall.js";
 import { useAuth } from "../context/authContext.jsx";
 import { useToast } from "../context/toastProvider.jsx";
 import GlobalLoading from "../globalLoading.jsx";
 import ReactModal from "react-modal";
-import { set } from "react-hook-form";
 
 const SelectItemsModal = ({ isOpen, onClose, onModalSubmit, po_line_item_id, line_item_name, po_item_details_id }) => {
   const { name } = useAuth();
@@ -165,7 +164,7 @@ const SelectItemsModal = ({ isOpen, onClose, onModalSubmit, po_line_item_id, lin
         : (
           <div className="bg-white w-full max-w-5xl max-h-full overflow-auto rounded-lg shadow-lg p-6 relative">
             <button className="absolute top-4 right-4 text-xl" onClick={onClose}>✕</button>
-            <h1 className="text-2xl font-semibold mb-6">Dispatch Items of {po_line_item_id || po_item_details_id || ''}</h1>
+            <h1 className="text-2xl font-semibold mb-6">Dispatch Item/s</h1>
 
             {groups.length > 0 ? (
               groups.map(([_, items]) => (
@@ -259,9 +258,9 @@ const SelectItemsModal = ({ isOpen, onClose, onModalSubmit, po_line_item_id, lin
               {showError ? 'Please fill/select all items before submitting.' : "\u00A0"}
             </div>
 
-            <div className="flex justify-end mt-6">
-              <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md mr-2" onClick={handleSubmit}>Submit</button>
+            <div className="flex justify-end mt-6 gap-3">
               <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md" onClick={onClose}>Cancel</button>
+              <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md" onClick={handleSubmit}>Submit</button>
             </div>
           </div>
         )}

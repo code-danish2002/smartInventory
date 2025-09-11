@@ -6,7 +6,7 @@ import { VscError } from "react-icons/vsc";
 import { FaQuestion } from "react-icons/fa";
 import { Warning } from "./utils/icons";
 
-export default function ShowApiMessage({ message, onClose }) {
+export default function ShowApiMessage({ id, message, onClose }) {
     const [visible, setVisible] = useState(true);
 
     // Extract status code if available.
@@ -48,7 +48,7 @@ export default function ShowApiMessage({ message, onClose }) {
         statusType = "success";
         defaultTitle = "Success";
         defaultMessage = message?.data?.message ||
-            message?.response?.data?.detail || "Request completed successfully.";
+            message?.response?.data?.detail || messageDetails || "Request completed successfully.";
         icon = <AiOutlineCheckCircle className="w-6 h-6" />;
         iconBgColor = "bg-green-100";
         textColor = "text-green-600";
@@ -94,15 +94,15 @@ export default function ShowApiMessage({ message, onClose }) {
     useEffect(() => {
       const timer = setTimeout(() => {
         setVisible(false);
-        if (onClose) onClose();
-      }, 3000);
+        if (onClose) onClose(id);
+      }, 10000);
 
       return () => clearTimeout(timer);
-    }, [onClose]);
+    }, [onClose, id]);
 
     const handleClose = () => {
         setVisible(false);
-        if (onClose) onClose();
+        if (onClose) onClose(id);
     };
 
     if (!visible) return null;
@@ -152,7 +152,7 @@ function normalizeDetails(detail, genericMessage = "No details provided.") {
 
     // 2) Plain string
     if (typeof detail === "string") {
-        return [detail];
+        return detail;
     }
 
     // 3) Pydantic‑style array of { loc, msg }

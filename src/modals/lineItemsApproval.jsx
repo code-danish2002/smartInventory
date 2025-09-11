@@ -8,13 +8,21 @@ import UploadPDF from './pdfUpload';
 import ConfirmationModal from './confirmationModal';
 import SelectItemsModal from './selectItems';
 import { useToast } from '../context/toastProvider';
-import { generateDevSigningParams } from '../utils/signingParams';
-import { GenerateInspectionPDF } from '../utils/inspectionPdfgenerator';
+import { set } from 'react-hook-form';
+import { Download } from '../utils/icons';
+import { downloadPDF } from '../utils/downloadResponsePdf';
+import { extractResponseInfo } from '../utils/responseInfo';
 
 export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
     const [loading, setLoading] = useState(true);
     const [poDetails, setPoDetails] = useState({});
     const [lineItems, setLineItems] = useState([]);
+    const [inspectedItems, setInspectedItems] = useState({
+        approve: [],
+        reject: [],
+        remarks: '',
+        pdf_sign_type: "Physically_Sign",
+    });
 
     const addToast = useToast();
     const [refreshLineItems, setRefreshLineItems] = useState(false);
@@ -22,6 +30,11 @@ export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
     const [openPDFUploadModal, setOpenPDFUploadModal] = useState(false);
     const [openDispatchModal, setOpenDispatchModal] = useState({ isOpen: false, po_line_item_id: null, po_item_details_id: null });
     const [confirmApproval, setConfirmApproval] = useState(null);
+
+    // check if *all* pendings are approved or rejected:
+    const pendingIds = lineItems.filter(i => i.line_item_status === 'Pending Approval').map(i => i.po_line_item_id);
+    const allApproved = pendingIds.length > 0 && pendingIds.every(id => inspectedItems.approve.some(a => a.po_line_item_id === id));
+    const allRejected = pendingIds.length > 0 && pendingIds.every(id => inspectedItems.reject.some(r => r.po_line_item_id === id));
 
 
     useEffect(() => {
@@ -39,58 +52,34 @@ export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
             });
     }, [refreshLineItems]);
 
-    console.log("Line Items:", poDetails, lineItems);
+    console.log("Line Items:", poDetails, lineItems, lineItems.po_number);
 
-    async function handleAction(actionBody) {
+    async function handleAction(body) {
+        console.log(body);
         setLoading(true);
-        setConfirmApproval(prev => ({ ...prev, isOpen: false }));
-        let thisLineItem = lineItems.filter(item => item.po_line_item_id === confirmApproval.id);
-        await api.get(`/api/allPoItemDataByLineItemId/${confirmApproval.id}`)
-            .then(res => {
-                console.log("Fetched Item Details:", res.data);
-                thisLineItem[0].po_item_details = res.data.data;
-            }
-            )
-            .catch(err => {
-                console.log("Error fetching item details:", err);
-            });
-        if (thisLineItem.length === 0) return;
-
-        const pdfBody = {
-            po_number: poDetails.po_number,
-            tender_number: poDetails.tender_number,
-            po_date_of_issue: poDetails.po_date_of_issue,
-            po_created_by: poDetails.po_created_by,
-            inspected_by: poDetails.inspected_by,
-            po_created_at: poDetails.po_created_at,
-            pdf_sign_type: actionBody.pdf_sign_type,
-            gstin_number: poDetails.gstin_number,
-            firm_name: poDetails.firm_name,
-            firm_address: poDetails.firm_address,
-            contact_person_name: poDetails.contact_person_name,
-            contact_number: poDetails.contact_number,
-            email_address: poDetails.email_address,
-            po_line_items: thisLineItem?.map(item => ({
-                line_item_name: item.line_item_name,
-                total_quantity: item.total_quantity,
-                quantity_offered: item.quantity_offered,
-                quantity_inspected: item.quantity_inspected,
-                po_item_details: item.po_item_details.map(detail => ({
-                    item_type: detail.item_type_name,
-                    item_make: detail.item_make_name,
-                    item_model: detail.item_model_name,
-                    item_part: detail.item_part_code,
-                    item_serial_number: detail.item_serial_number, // Assuming this is an array of strings
-                }))
-            }))
+        if (body.approve.length === 0 && body.reject.length === 0) {
+            addToast({ type: 'error', message: 'Please select at least one line item to approve or reject.' });
+            setLoading(false);
+            return;
         }
-        const signing_params = await generateDevSigningParams();
-        console.log("Generated Signing Parameters:", signing_params);
-        await api.post(`/api/inspection-auth/${confirmApproval.id}`, actionBody)
-            .then(res => {
-                addToast(res);
-                if (actionBody.action === 'approve') {
-                    GenerateInspectionPDF(pdfBody, signing_params)
+        if (body.reject.length > 0 && (body?.remarks?.trim() === '' || !body?.remarks)) {
+            alert("Please provide remarks for rejected items.");
+            setLoading(false);
+            return;
+        }
+
+        const config = {
+            ...(body?.approve?.length > 0 ? { responseType: 'arraybuffer' } : {}),
+        }
+        await api.post(`/api/inspection-auths`, body, config)
+            .then(response => {
+                if (response.headers['content-type'] === 'application/pdf' && body?.approve?.length > 0) {
+                    const { filename, message } = extractResponseInfo(response, 'Line Item Inspection Certificate.pdf');
+                    console.log(filename, message, response?.headers, response);
+                    downloadPDF(response.data, filename);
+                    addToast({ message: message, type: 'success' });
+                } else {
+                    addToast(response);
                 }
                 setRefreshLineItems(!refreshLineItems);
             })
@@ -98,9 +87,10 @@ export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
                 console.log(err);
                 addToast(err);
             }).finally(() => {
-                setConfirmApproval(null);
+                setInspectedItems({ approve: [], reject: [], remarks: '', pdf_sign_type: "Physically_Sign" });
                 setLoading(false);
             });
+        setLoading(false);
     }
 
     async function handleDispatch(e, line_item_name, po_line_item_id) {
@@ -117,6 +107,24 @@ export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
             });
     }
 
+    const hasAnySelection = inspectedItems.approve.length > 0 || inspectedItems.reject.length > 0;
+
+    // 3️⃣ handlers to toggle “all”:
+    function toggleApproveAll(checked) {
+        setInspectedItems(prev => ({
+            ...prev,
+            approve: checked ? pendingIds.map(id => ({ po_line_item_id: id })) : [],
+            reject: checked ? [] : prev.reject,
+        }));
+    }
+    function toggleRejectAll(checked) {
+        setInspectedItems(prev => ({
+            ...prev,
+            reject: checked ? pendingIds.map(id => ({ po_line_item_id: id })) : [],
+            approve: checked ? [] : prev.approve,
+        }));
+    }
+
     return (
         <>{loading ? (<GlobalLoading />) : (
             <Modal
@@ -131,73 +139,230 @@ export const LineItemsInspection = ({ isOpen, onCancel, po_id }) => {
             >
                 <div className="bg-white p-4 rounded-lg w-full max-w-7xl max-h-[90vh] overflow-y-auto">
                     <div className="text-xl mb-2 p-2 flex items-center justify-between rounded-md">
-                        <h2 className="text-2xl font-semibold text-gray-700">PO: {po_id} - Line Items</h2>
+                        <h2 className="text-2xl font-semibold text-gray-700">{poDetails.po_number} - Line Items</h2>
                         <button onClick={onCancel} className="text-gray-500 px-3 py-1 rounded-lg hover:text-gray-700 hover:bg-gray-200 text-lg">
                             &times;
                         </button>
                     </div>
 
+                    {pendingIds.length > 1 &&
+                        <div className="flex w-full sm:hidden items-center gap-6 mt-4 mb-2 px-2">
+                            <label className="inline-flex w-full justify-center items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={allApproved}
+                                    onChange={e => toggleApproveAll(e.target.checked)}
+                                    className="w-4 h-4 accent-green-600"
+                                    disabled={pendingIds.length === 0}
+                                />
+                                <span className="text-gray-700 font-medium">Approve All</span>
+                            </label>
+
+                            <label className="inline-flex w-full justify-center items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={allRejected}
+                                    onChange={e => toggleRejectAll(e.target.checked)}
+                                    className="w-4 h-4 accent-red-600"
+                                    disabled={pendingIds.length === 0}
+                                />
+                                <span className="text-gray-700 font-medium">Reject All</span>
+                            </label>
+                        </div>
+                    }
+
                     {lineItems.length > 0 ? (
                         <div className="mt-4">
-                            <div className='hidden sm:grid sm:grid-cols-8 justify-center items-center bg-slate-100 gap-3  p-2 rounded-md text-center font-semibold text-gray-600'>
+                            <div className='hidden sm:grid sm:grid-cols-9 justify-center items-center bg-slate-100 gap-3  p-2 rounded-md text-center font-semibold text-gray-600'>
                                 <div className="text-gray-600 font-semibold col-span-2">Line Items</div>
                                 <div className="text-gray-600 font-semibold col-span-1">Total Quantity</div>
                                 <div className="text-gray-600 font-semibold col-span-1">Quantity Offered</div>
                                 <div className="text-gray-600 font-semibold col-span-1">Quantity Inspected</div>
                                 <div className="text-gray-600 font-semibold col-span-1">View Items</div>
-                                <div className="text-gray-600 font-semibold col-span-2">Action</div>
-                            </div>
-                            {lineItems.map((item, index) => (
-                                <div id={item.po_line_item_id} key={item.po_line_item_id} className="mt-2">
-                                    <div key={index} className="grid grid-cols-2 sm:grid-cols-8 gap-3 justify-center bg-slate-50 p-2 rounded-md">
-                                        <div className="flex justify-center items-center text-gray-700 col-span-2">
-                                            <span className="font-medium sm:hidden">Name: </span>
-                                            <div className="text-gray-600 font-semibold">{item.line_item_name}</div>
-                                        </div>
-                                        <div className="flex justify-center items-center text-gray-700 col-span-1">
-                                            <span className="font-medium sm:hidden">Total Quantity: </span>
-                                            <div className="text-gray-600 font-semibold">{item.total_quantity}</div>
-                                        </div>
-                                        <div className="flex justify-center items-center text-gray-700 col-span-1">
-                                            <span className="font-medium sm:hidden">Qty Offered:</span>
-                                            <div className="text-gray-600 font-semibold">{item.quantity_offered}</div>
-                                        </div>
-                                        <div className="flex justify-center items-center text-gray-700 col-span-1">
-                                            <span className="font-medium sm:hidden">Qty Inspected:</span>
-                                            <div className="text-gray-600 font-semibold">{item.quantity_inspected}</div>
-                                        </div>
-                                        <div className="flex justify-center items-center text-gray-700 col-span-1">
-                                            <button className='text-sm font-medium text-blue-600 hover:bg-blue-100 p-2 rounded-lg'
-                                                onClick={() => setModalOperation({ name: "Item Details", data: { params: { po_id: po_id, po_line_item_id: item.po_line_item_id }, table: 'Item Details' }, type: 'view' })}
-                                            >
-                                                View
-                                            </button>
-                                        </div>
-                                        {item.line_item_status === 'Pending Approval' ? (<div className="flex items-center col-span-2 gap-3">
-                                            <button onClick={() => setConfirmApproval({ isOpen: true, id: item.po_line_item_id, type: 'approve' })} className='flex flex-row items-center justify-center gap-2 p-3 bg-green-200 hover:bg-green-100 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'>
-                                                Approve
-                                            </button>
+                                <div className="text-gray-600 font-semibold col-span-1">⬇PDF</div>
+                                {pendingIds.length > 1 ? (
+                                    <div className="col-span-2 flex justify-center gap-1">
+                                        {/* Approve All */}
+                                        <label className="inline-flex w-full justify-center items-center gap-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={allApproved}
+                                                onChange={e => toggleApproveAll(e.target.checked)}
+                                                disabled={pendingIds.length === 0}
+                                                className="w-4 h-4 accent-green-600"
+                                            />
+                                            <span className="text-gray-700">Approve All</span>
+                                        </label>
 
-                                            <button onClick={() => setConfirmApproval({ isOpen: true, id: item.po_line_item_id, type: 'reject' })} className='flex flex-row items-center justify-center gap-2 p-3 bg-red-200 hover:bg-red-100 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'>
-                                                Reject
-                                            </button>
-                                        </div>)
-                                            : item.line_item_status === 'Ready for Dispatch' ? (
-                                                <div className="flex items-center col-span-2">
-                                                    <button
-                                                        className='flex flex-row items-center justify-center gap-2 p-3 bg-blue-200 hover:bg-blue-100 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'
-                                                        onClick={(event) => handleDispatch(event, item.line_item_name, item.po_line_item_id)}
-                                                    >
-                                                        Dispatch <FaShippingFast className='ml-2' />
-                                                    </button>
-                                                </div>
-                                            )
-                                                : (<div className="col-span-2 text-center italic text-gray-500">
-                                                    {item.line_item_status}
-                                                </div>)}
+                                        {/* Reject All */}
+                                        <label className="inline-flex w-full justify-center items-center gap-1">
+                                            <input
+                                                type="checkbox"
+                                                checked={allRejected}
+                                                onChange={e => toggleRejectAll(e.target.checked)}
+                                                disabled={pendingIds.length === 0}
+                                                className="w-4 h-4 accent-red-600"
+                                            />
+                                            <span className="text-gray-700">Reject All</span>
+                                        </label>
                                     </div>
-                                </div>
-                            ))}
+                                ) : (
+                                    <div className="text-gray-600 font-semibold col-span-2">Action</div>
+                                )}
+                            </div>
+                            {lineItems.map((item, index) => {
+                                const isApproved = inspectedItems.approve.some(a => a.po_line_item_id === item.po_line_item_id);
+                                const isRejected = inspectedItems.reject.some(r => r.po_line_item_id === item.po_line_item_id);
+
+                                return (
+                                    <div id={item.po_line_item_id} key={item.po_line_item_id} className="mt-2 max-w-full">
+                                        <div key={index} className="grid grid-cols-2 sm:grid-cols-9 gap-3 justify-center bg-slate-50 p-2 rounded-md">
+                                            <div className="flex justify-center items-center text-gray-700 col-span-2">
+                                                <span className="font-medium sm:hidden">Name: </span>
+                                                <div className="text-gray-600 font-semibold">{item.line_item_name}</div>
+                                            </div>
+                                            <div className="flex justify-center items-center text-gray-700 col-span-1">
+                                                <span className="font-medium sm:hidden">Total Quantity: </span>
+                                                <div className="text-gray-600 font-semibold">{item.total_quantity}</div>
+                                            </div>
+                                            <div className="flex justify-center items-center text-gray-700 col-span-1">
+                                                <span className="font-medium sm:hidden">Qty Offered:</span>
+                                                <div className="text-gray-600 font-semibold">{item.quantity_offered}</div>
+                                            </div>
+                                            <div className="flex justify-center items-center text-gray-700 col-span-1">
+                                                <span className="font-medium sm:hidden">Qty Inspected:</span>
+                                                <div className="text-gray-600 font-semibold">{item.quantity_inspected}</div>
+                                            </div>
+                                            <div className="flex justify-center items-center text-gray-700 col-span-1">
+                                                <span className="font-medium sm:hidden">Items:</span>
+                                                <button className='text-sm font-medium text-blue-600 hover:bg-blue-100 p-2 rounded-lg'
+                                                    onClick={() => setModalOperation({ name: "Item Details", data: { params: { po_id: po_id, po_line_item_id: item.po_line_item_id }, table: 'Item Details' }, type: 'view' })}
+                                                >
+                                                    View
+                                                </button>
+                                            </div>
+                                            <div className="flex justify-center items-center text-gray-700 col-span-1">
+                                                <span className="font-medium sm:hidden">⬇PDF:</span>
+                                                <button className='text-sm font-medium text-blue-600 hover:bg-blue-100 p-2 rounded-lg disabled:cursor-not-allowed' disabled={item.line_item_status !== 'Ready for Dispatch'}
+                                                    onClick={async () => {
+                                                        const config = { responseType: 'arraybuffer' };
+                                                        api.get(`/api/inspection-auth/pdf/${item.po_line_item_id}`, config).then((response) => {
+                                                            if (response.headers['content-type'] === 'application/pdf') {
+                                                                downloadPDF(response.data, `${item.line_item_name}-inspection.pdf`);
+                                                                addToast({ response: { statusText: 'PDF downloaded!' }, type: 'success', status: '200' });
+                                                            } else {
+                                                                addToast(response);
+                                                            }
+                                                        })
+                                                            .catch((error) => {
+                                                                console.error('Error downloading PDF:', error);
+                                                                addToast(error);
+                                                            });
+                                                    }}
+                                                >
+                                                    <Download className='w-5 h-5' />
+                                                </button>
+                                            </div>
+                                            {item.line_item_status === 'Pending Approval' ? (
+                                                <div className="flex items-center col-span-2 gap-3">
+                                                    <div
+                                                        role="button"
+                                                        aria-pressed={isApproved}
+                                                        onClick={() => {
+                                                            setInspectedItems(prev => ({
+                                                                approve: isApproved
+                                                                    ? prev.approve.filter(a => a.po_line_item_id !== item.po_line_item_id)
+                                                                    : [...prev.approve, { po_line_item_id: item.po_line_item_id }],
+                                                                reject: prev.reject.filter(r => r.po_line_item_id !== item.po_line_item_id),
+                                                                remarks: prev.remarks,
+                                                                pdf_sign_type: prev.pdf_sign_type,
+                                                            }));
+                                                        }}
+                                                        className={`flex items-center justify-center gap-2 p-3 border-2 rounded-lg shadow-sm transition duration-200 w-full max-w-xs cursor-pointer ${isApproved
+                                                            ? 'border-green-300 shadow-md'
+                                                            : 'border-gray-200 hover:border-green-300 hover:shadow-md'} `}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            readOnly
+                                                            checked={isApproved}
+                                                            className="w-4 h-4 accent-green-600"
+                                                        />
+                                                        <span className="text-gray-700">Approve</span>
+                                                    </div>
+
+                                                    {/* REJECT CARD */}
+                                                    <div
+                                                        role="button"
+                                                        aria-pressed={isRejected}
+                                                        onClick={() => {
+                                                            setInspectedItems(prev => ({
+                                                                reject: isRejected
+                                                                    ? prev.reject.filter(r => r.po_line_item_id !== item.po_line_item_id)
+                                                                    : [...prev.reject, { po_line_item_id: item.po_line_item_id }],
+                                                                approve: prev.approve.filter(a => a.po_line_item_id !== item.po_line_item_id),
+                                                                remarks: prev.remarks,
+                                                                pdf_sign_type: prev.pdf_sign_type,
+                                                            }));
+                                                        }}
+                                                        className={` flex items-center justify-center gap-2 p-3 border-2 rounded-lg shadow-sm transition duration-200 w-full max-w-xs cursor-pointer ${isRejected
+                                                            ? 'border-red-300  shadow-md'
+                                                            : 'border-gray-200 hover:border-red-300 hover:shadow-md'} `}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            readOnly
+                                                            checked={isRejected}
+                                                            className="w-4 h-4 accent-red-600"
+                                                        />
+                                                        <span className="text-gray-700">Reject</span>
+                                                    </div>
+                                                </div>)
+                                                : item.line_item_status === 'Ready for Dispatch' ? (
+                                                    <div className="flex items-center col-span-2">
+                                                        <button
+                                                            className='flex flex-row items-center justify-center gap-2 p-3 bg-blue-200 hover:bg-blue-100 rounded-lg shadow-md hover:shadow-lg transition duration-200 w-full max-w-xs'
+                                                            onClick={(event) => handleDispatch(event, item.line_item_name, item.po_line_item_id)}
+                                                        >
+                                                            Dispatch <FaShippingFast className='ml-2' />
+                                                        </button>
+                                                    </div>
+                                                )
+                                                    : (<div className="col-span-2 text-center italic text-gray-500">
+                                                        {item.line_item_status}
+                                                    </div>)}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {(inspectedItems.reject.length > 0 || inspectedItems.approve.length > 0) && <div className="mt-4 p-4 bg-gray-50 rounded-md shadow-md">
+                                {inspectedItems.reject.length > 0 && <textarea
+                                    className="w-full mt-4 p-2 border border-gray-300 rounded-md"
+                                    placeholder="Add Remarks for rejected item/s before submitting inspection"
+                                    value={inspectedItems.remarks}
+                                    onChange={(e) => setInspectedItems({ ...inspectedItems, remarks: e.target.value })}
+                                />}
+                                {inspectedItems.approve.length > 0 && <div className='flex items-center justify-start gap-2'>
+                                    <input
+                                        type="checkbox"
+                                        id="digitally_signed"
+                                        className="w-4 h-4 ml-2 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                        checked={inspectedItems.pdf_sign_type === "Digitally_Esign"}
+                                        onChange={(e) => setInspectedItems({ ...inspectedItems, pdf_sign_type: e.target.checked ? "Digitally_Esign" : "Physically_Sign" })}
+                                    />
+                                    <label htmlFor='digitally_signed' className="text-gray-600">Digitally Sign the certificate of approved line items</label>
+                                </div>}
+                            </div>}
+                            {hasAnySelection && <div className="flex justify-end mt-4">
+                                <button
+                                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+                                    onClick={() => {
+                                        handleAction(inspectedItems);
+                                    }}
+                                >
+                                    Submit Inspection
+                                </button>
+                            </div>}
                         </div>
                     ) : (
                         <div className="text-center text-gray-600 font-semibold mt-4 mb-6">No line items found.</div>

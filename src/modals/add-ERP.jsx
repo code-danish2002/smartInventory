@@ -12,6 +12,52 @@ export default function AddERP({ isOpen, onClose }) {
     const addToast = useToast();
     const [options, setOptions] = React.useState({
         firm_id: [],
+        unit_measurement: [
+            { value: 'Bags', label: 'Bags' },
+            { value: 'Bale', label: 'Bale' },
+            { value: 'Bundles', label: 'Bundles' },
+            { value: 'Buckles', label: 'Buckles' },
+            { value: 'Billions of Units', label: 'Billions of Units' },
+            { value: 'Box', label: 'Box' },
+            { value: 'Bottles', label: 'Bottles' },
+            { value: 'Bunches', label: 'Bunches' },
+            { value: 'Cans', label: 'Cans' },
+            { value: 'Cubic Meter', label: 'Cubic Meter' },
+            { value: 'Cubic Centimeter', label: 'Cubic Centimeter' },
+            { value: 'Centimeter', label: 'Centimeter' },
+            { value: 'Cartons', label: 'Cartons' },
+            { value: 'Dozen', label: 'Dozen' },
+            { value: 'Drum', label: 'Drum' },
+            { value: 'Great Gross', label: 'Great Gross' },
+            { value: 'Grams', label: 'Grams' },
+            { value: 'Gross', label: 'Gross' },
+            { value: 'Gross Yards', label: 'Gross Yards' },
+            { value: 'Kilograms', label: 'Kilograms' },
+            { value: 'Kiloliter', label: 'Kiloliter' },
+            { value: 'Kilometre', label: 'Kilometre' },
+            { value: 'Millilitre', label: 'Millilitre' },
+            { value: 'Meters', label: 'Meters' },
+            { value: 'Metric Tons', label: 'Metric Tons' },
+            { value: 'Numbers', label: 'Numbers' },
+            { value: 'Packs', label: 'Packs' },
+            { value: 'Pieces', label: 'Pieces' },
+            { value: 'Pairs', label: 'Pairs' },
+            { value: 'Quintal', label: 'Quintal' },
+            { value: 'Rolls', label: 'Rolls' },
+            { value: 'Sets', label: 'Sets' },
+            { value: 'Square Feet', label: 'Square Feet' },
+            { value: 'Square Meters', label: 'Square Meters' },
+            { value: 'Square Yards', label: 'Square Yards' },
+            { value: 'Tablets', label: 'Tablets' },
+            { value: 'Ten Gross', label: 'Ten Gross' },
+            { value: 'Thousands', label: 'Thousands' },
+            { value: 'Tonnes', label: 'Tonnes' },
+            { value: 'Tubes', label: 'Tubes' },
+            { value: 'US Gallons', label: 'US Gallons' },
+            { value: 'Units', label: 'Units' },
+            { value: 'Yards', label: 'Yards' },
+            { value: 'Others', label: 'Others' }
+        ],
     });
     const elements = [
         { name: 'po_number', label: 'PO Number', type: 'input', isDisabled: false, isRequired: true, placeholder: 'PO Number' },
@@ -21,7 +67,10 @@ export default function AddERP({ isOpen, onClose }) {
 
     const lineItemsElements = [
         { name: 'line_item_name', label: 'Line Item Name', type: 'input', isDisabled: false, isRequired: true, placeholder: 'Line Item Name' },
+        { name: 'description', label: 'Description', type: 'input', isDisabled: false, isRequired: true, placeholder: 'Description' },
         { name: 'total_quantity', label: 'Quantity', type: 'input', isDisabled: false, isRequired: true, placeholder: 'Quantity', inputType: 'number' },
+        { name: 'unit_measurement', label: 'Unit Measurement', type: 'select', isDisabled: false, isRequired: true, placeholder: 'Unit Measurement', },
+        { name: 'unit_price', label: 'Unit Price(₹)', type: 'input', isDisabled: false, isRequired: true, placeholder: 'Unit Price in Rs', inputType: 'number' },
     ]
 
     React.useEffect(() => {
@@ -33,7 +82,7 @@ export default function AddERP({ isOpen, onClose }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        api.post('/api/posCreate', erpData).then((response) => { addToast(response); onClose(); });
+        api.post('/api/posCreate', erpData).then((response) => { addToast(response); onClose(); }).catch((error) => { addToast(error); onClose(); });
         console.log(erpData, 'erpData');
     };
     const commonSelectProps = {
@@ -69,11 +118,11 @@ export default function AddERP({ isOpen, onClose }) {
                     </button>
                 </div>
                 <form onSubmit={handleSubmit} className="flex flex-wrap gap-4 w-full max-h-[80vh] overflow-auto mb-6 p-4 border rounded-lg bg-gray-50">
-                    
+
                     {elements.map((element, index) => (
                         <div key={index} className="flex flex-col gap-2 mb-4 min-w-[250px] max-w-full">
                             <label className="block text-sm font-medium text-gray-900">{element.label}</label>
-                            {element.type === 'input'  ? (
+                            {element.type === 'input' ? (
                                 <input
                                     type={element.inputType || 'text'}
                                     id={element.name}
@@ -82,7 +131,7 @@ export default function AddERP({ isOpen, onClose }) {
                                     value={erpData?.[element.name] || ''}
                                     onChange={(e) => setErpData({ ...erpData, [element.name]: e.target.value })}
                                     required={element.isRequired}
-                                    className="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"                                    
+                                    className="border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                                 />
                             ) : element.type === 'select' ? (
                                 <Select
@@ -105,39 +154,58 @@ export default function AddERP({ isOpen, onClose }) {
 
                     <div className="flex mb-4 w-full border-dashed border-2 border-gray-300"></div>
                     <label className="block text-sm font-medium text-gray-900">Line Items</label>
-                    
+
 
                     {erpData?.po_line_items?.map((lineItem, index) => (
                         <div key={index} className="w-full flex flex-col p-4 bg-white rounded-lg shadow-sm mb-4">
                             <div className="flex justify-between items-center mb-2">
-                            <h3 className="text-lg font-semibold mb-2">Line Item {index + 1}</h3>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const updatedLineItems = [...erpData.po_line_items];
-                                    updatedLineItems.splice(index, 1);
-                                    setErpData({ ...erpData, po_line_items: updatedLineItems });
-                                }}
-                                className="text-red-500 hover:text-red-700 mb-2"
-                            >
-                                Remove
-                            </button>
+                                <h3 className="text-lg font-semibold mb-2">Line Item {index + 1}</h3>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const updatedLineItems = [...erpData.po_line_items];
+                                        updatedLineItems.splice(index, 1);
+                                        setErpData({ ...erpData, po_line_items: updatedLineItems });
+                                    }}
+                                    className="text-red-500 hover:text-red-700 mb-2"
+                                >
+                                    Remove
+                                </button>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {lineItemsElements.map((element, idx) => (
-                                <div key={idx} className="flex flex-col gap-2 mb-4">
-                                    <label className="block text-sm font-medium text-gray-900">{element.label}</label>
-                                    <MyInput
-                                        property={element}
-                                        value={lineItem[element.name] || ''}
-                                        handleInputChange={(name, value) => {
-                                            const updatedLineItems = [...erpData.po_line_items];
-                                            updatedLineItems[index][name] = value;
-                                            setErpData({ ...erpData, po_line_items: updatedLineItems });
-                                        }}
-                                    />
-                                </div>
-                            ))}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                {lineItemsElements.map((element, idx) => (
+                                    <div key={idx} className="flex flex-col gap-2 mb-4">
+                                        <label className="block text-sm font-medium text-gray-900">{element.label}</label>
+                                        {element.type === 'input' ? <MyInput
+                                            property={element}
+                                            value={lineItem[element.name] || ''}
+                                            handleInputChange={(name, value) => {
+                                                const updatedLineItems = [...erpData.po_line_items];
+                                                updatedLineItems[index][name] = value;
+                                                setErpData({ ...erpData, po_line_items: updatedLineItems });
+                                            }}
+                                        />
+                                            : element.type === 'select' ? <Select
+                                                options={options[element.name] || []}
+                                                value={options[element.name]?.find((option) => option.value === lineItem[element.name]) || null}
+                                                onChange={selectedOption => {
+                                                    const updatedLineItems = [...erpData.po_line_items];
+                                                    updatedLineItems[index][element.name] = selectedOption?.value;
+                                                    setErpData({ ...erpData, po_line_items: updatedLineItems });
+                                                }}
+                                                id={element.name}
+                                                name={element.name}
+                                                isClearable={true}
+                                                isDisabled={element.isDisabled}
+                                                className="mt-1 basic-multi-select min-w-36"
+                                                classNamePrefix="select"
+                                                maxMenuHeight={200}  // Maximum height before scrolling starts
+                                                menuPlacement="auto" // Smart positioning
+                                                {...commonSelectProps}
+                                            />
+                                                : null}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     ))}

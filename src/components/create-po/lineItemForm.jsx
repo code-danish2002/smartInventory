@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { DeleteIcon, DownArrow, Edit, OnSubmitLoading, RoundAddCircle } from '../../utils/icons.jsx';
 import ItemsForm from './itemsForm.jsx';
+import CreatableSelect from 'react-select/creatable';
 
 const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) => {
     const [lineItem, setLineItem] = useState([]);
@@ -16,15 +17,20 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
         if (!defaultValues) return;
 
         setLineItem(defaultValues.map(li => ({
-            po_line_item_id: li.po_line_item_id || uuidv4(),
+            po_line_item_id: li.po_line_item_id || li.erp_po_line_item_id || uuidv4(),
             isNew: false,
+            selected: true,
             line_item_name: li.line_item_name || '',      // make sure you map the correct field
             total_quantity: li.total_quantity || null,
             quantity_offered: li.quantity_offered || null,
             quantity_inspected: li.quantity_inspected || null,
+            description: li.description || null,
+            unit_measurement: li.unit_measurement || null,
+            unit_price: li.unit_price || null,
             po_line_item_status: li?.po_line_item_status || null,
             phases: li?.phases || null,
             item_location: li?.item_location || null,
+            warranty_start: li?.warranty_start || null,
             items: (li.po_item_details || []).map(d => ({
                 po_line_item_id: d.po_item_details_id,
                 po_item_details_id: d.po_item_details_id,
@@ -40,6 +46,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                 item_model: d.item_model_name,
                 item_part: d.item_part_code,
                 description: d.item_part_description,
+                remarks: d.remarks,
             })),
         })));
     }, [defaultValues]);
@@ -50,6 +57,45 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
             newValue = newValue.replace(/[^0-9]/g, '');
             newValue = newValue === '' ? '' : parseInt(newValue); // Convert to number or keep as empty string
         }
+
+        if (fieldName === 'unit_price') {
+            newValue = newValue.replace(/[^0-9.]/g, '');
+            newValue = newValue === '' ? '' : parseFloat(newValue); // Convert to number or keep as empty string
+        }
+
+        if (fieldName === 'warranty_start') {
+            if (newValue == null || newValue === '') {
+                newValue = '';
+            } else {
+                let input = newValue.trim();
+
+                // Allow special strings (case-insensitive)
+                if (/^(PSI|PO Date)$/i.test(input)) {
+                    newValue = input;
+                } else {
+                    // Keep only numbers and hyphens
+                    input = input.replace(/[^0-9-]/g, '');
+
+                    const dateFormat = /^(\d{4})-(\d{2})-(\d{2})$/;
+                    if (dateFormat.test(input)) {
+                        const [, year, month, day] = input.match(dateFormat);
+                        const dateObj = new Date(`${year}-${month}-${day}`);
+
+                        const isValid =
+                            dateObj instanceof Date &&
+                            !isNaN(dateObj) &&
+                            dateObj.getDate() === parseInt(day, 10) &&
+                            dateObj.getMonth() + 1 === parseInt(month, 10) &&
+                            dateObj.getFullYear() === parseInt(year, 10);
+
+                        newValue = isValid ? input : '';
+                    } else {
+                        newValue = '';
+                    }
+                }
+            }
+        }
+
 
         setLineItem(prev =>
             // Adjust values if they violate constraints
@@ -82,10 +128,6 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
         );
     };
 
-    const handleDeleteLineItem = (lineItemId) => {
-        setLineItem(prev => prev.filter(item => item.po_line_item_id !== lineItemId));
-    };
-
     const toggleLineItemExpansion = (lineItemId) => {
         setExpandedLineItemIds(prev =>
             prev?.includes(lineItemId) ? prev.filter(id => id !== lineItemId) : [...prev, lineItemId]
@@ -93,7 +135,6 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
     };
 
     const handleAddItemToLine = (newItem) => {
-
         setLineItem(prev =>
             prev.map(li => {
                 if (li.po_line_item_id !== selectedLineItemIdForAdd) return li;
@@ -142,6 +183,19 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
         );
     };
 
+    const handleLineItemSelect = (lineItemId) => {
+        if (task === 'Create Inspection') {
+            setLineItem(prev =>
+                prev.map(li =>
+                    li.po_line_item_id === lineItemId
+                        ? { ...li, selected: !li.selected } // ✅ toggle selected
+                        : li
+                )
+            );
+        }
+    };
+
+
     const countItems = (lineItem) => {
         const count = lineItem.reduce((acc, item) => {
             return acc + (item.item_serial_number ? item.item_serial_number.length : 0);
@@ -149,43 +203,69 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
         return count;
     };
 
+    const headerSections = ['Line Item', 'Description', 'Quantity', 'Unit', 'Price', 'Qty Offered', ...(task !== 'Create Inspection' ? ['Warranty'] : []), ...(task !== 'Create Inspection' ? ['Qty Inspected'] : []), ...(task === 'Create Inspection' ? ['Select'] : ['Action'])];
+
     return (
         <div key={po?.id} className="flex flex-col">
             <div className='mb-8 p-4 border rounded-md shadow'>
-                <div className="flex flex-col gap-1 mb-4">
-                    <div className="grid grid-cols-5 gap-2">
-                        {['Line Item', 'Quantity', 'Qty Offered', 'Qty Inspected', 'Action'].map(section => (
+                <div className="flex flex-col gap-1 mb-4 overflow-auto">
+                    <div className={`min-w-max grid ${task !== 'Create Inspection' ? 'grid-cols-11' : 'grid-cols-9'} gap-1`}>
+                        {headerSections.map(section => (
                             <div
                                 key={section}
-                                className={`p-2 border rounded bg-gray-100 text-sm font-semibold text-center ${section === 'Action' ? 'col-span-1' : ''}`}
+                                className={`p-2 border rounded bg-gray-100 text-sm font-semibold text-center ${(section === 'Line Item' || section === 'Description') ? 'col-span-2' : ''}`}
                             >
                                 {section}
                             </div>
                         ))}
                     </div>
                     {lineItem?.map((item) => (
-                        <div key={item.po_line_item_id} className={`flex flex-col gap-2 p-1 border rounded ${item.quantity_offered !== countItems(item.items) ? 'border-red-500' : ''}`}>
-                            <div className="grid grid-cols-5 gap-2">
-                                <input type="text" placeholder='Enter Name' className={`text-center  ${item.line_item_name ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.line_item_name} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'line_item_name')} />
+                        <div key={item.po_line_item_id} className={`flex flex-col gap-2 p-0.5 border rounded ${item.quantity_offered !== countItems(item.items) && task !== 'Create Inspection' ? 'border-red-500' : ''}`}>
+                            <div className={`grid ${task !== 'Create Inspection' ? 'grid-cols-11' : 'grid-cols-9'} gap-1`}>
+                                <input type="text" placeholder='Enter Name' className={`text-center col-span-2  ${item.line_item_name ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.line_item_name} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'line_item_name')} />
+                                <input type="text" placeholder='Description' className={`text-center col-span-2 ${item.description ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.description} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'description')} />
                                 <input type="number" placeholder='Enter Quantity' className={`text-center ${item.total_quantity > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.total_quantity} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'total_quantity')} />
-                                <input type="number" placeholder='Enter Qty Offered' className={`text-center ${item.quantity_offered > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.quantity_offered} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'quantity_offered')} />
-                                <input type="number" placeholder='Enter Qty Inspected' className={`text-center ${item.quantity_inspected > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.quantity_inspected} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'quantity_inspected')} />
+                                <input type="text" placeholder='Unit' className={`text-center ${item.unit_measurement ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.unit_measurement} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'unit_measurement')} />
+                                <input type='number' placeholder='Price' className={`text-center ${item.unit_price > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.unit_price} readOnly={!item.isNew} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'unit_price')} />
+                                <input type="number" placeholder='Enter Qty Offered' className={`text-center ${item.quantity_offered > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.quantity_offered} readOnly={!item.isNew && task !== 'Create Inspection'} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'quantity_offered')} />
+                                {task !== 'Create Inspection' &&
+                                    <CreatableSelect
+                                        placeholder='YYYY-MM-DD'
+                                        className={`text-center ${item.warranty_start ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`}
+                                        options={[{ value: 'PSE', label: 'PSE' }, { value: 'PO Date', label: 'PO Date' }]}
+                                        value={item?.warranty_start ? { value: item.warranty_start, label: item.warranty_start } : null}
+                                        readOnly={!item.isNew}
+                                        isClearable
+                                        onChange={(e) => handleLineItemChange(item.po_line_item_id, e?.value ? e.value : null, 'warranty_start')}
+                                    />}
+                                {task !== 'Create Inspection' && <input type="number" placeholder='Enter Qty Inspected' className={`text-center ${item.quantity_inspected > 0 ? 'border-gray-200' : 'border border-1 rounded-md border-red-500'}`} value={item.quantity_inspected} onChange={(e) => handleLineItemChange(item.po_line_item_id, e.target.value, 'quantity_inspected')} />}
                                 <div className="flex gap-2 ml-auto w-full justify-center">
-                                    {item?.items?.length > 0 && <span className="flex items-center bg-blue-800 text-white px-4 rounded-full text-xs">{countItems(item.items)}</span>}
+                                    {item?.items?.length > 0 && <span className="flex items-center bg-blue-800 text-white px-2 rounded-full text-xs">{countItems(item.items)}</span>}
                                     {/* Remove button */}
-                                    {(!item.po_line_item_status || item.po_line_item_status === 'Correction Required') &&
+                                    {/* {(!item.po_line_item_status || item.po_line_item_status === 'Correction Required') &&
                                         <button
                                             onClick={() => handleDeleteLineItem(item.po_line_item_id)}
                                             aria-label="Remove line item"
                                         >
                                             <DeleteIcon />
-                                        </button>}
+                                        </button>} */}
+                                    {/* checkbox to select current lineItem to be in lineItemForm for submission */}
+                                    {task === 'Create Inspection' && <input type="checkbox" checked={item.selected || false} onChange={() => handleLineItemSelect(item.po_line_item_id)} />}
                                     {/* button to show item details */}
-                                    <button
-                                        onClick={() => toggleLineItemExpansion(item.po_line_item_id)}
-                                        className="text-gray-500 text-xl p-2 ml-1 rounded-md bg-gray-50 hover:bg-gray-100 transition duration-200">
-                                        <DownArrow className={expandedLineItemIds?.includes(item.po_line_item_id) ? 'rotate-180' : ''} />
-                                    </button>
+                                    {task !== 'Create Inspection' && (
+                                        <button
+                                            onClick={() => toggleLineItemExpansion(item.po_line_item_id)}
+                                            className="inline-flex items-center text-gray-500 text-sm px-2 py-1 ml-1 rounded-md bg-gray-50 hover:bg-gray-100 transition duration-200 h-auto"
+                                            type="button"
+                                        >
+                                            <DownArrow
+                                                className={`w-4 h-4 mr-1 transition-transform duration-200 ${expandedLineItemIds?.includes(item.po_line_item_id) ? 'rotate-180' : ''
+                                                    }`}
+                                            />
+                                            Item
+                                        </button>
+                                    )}
+
                                 </div>
                             </div>
                             {expandedLineItemIds?.includes(item.po_line_item_id) && (
@@ -204,7 +284,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                                                     <style>{`.scrollbar-hide::-webkit-scrollbar { display: none; }`}</style>
                                                     {/* grid with 7 columns: 6 data columns + 1 for actions */}
                                                     <div className="grid gap-2 whitespace-nowrap" style={{
-                                                        gridTemplateColumns: "auto auto auto auto auto auto auto"
+                                                        gridTemplateColumns: "auto auto auto auto auto auto auto auto",
                                                     }}>
                                                         {/* — Header Row — */}
                                                         {[
@@ -213,7 +293,8 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                                                             "Model",
                                                             "Part",
                                                             "Desc",
-                                                            "S.N",
+                                                            "S.N", ,
+                                                            "Remarks",
                                                             "Action"          // empty header for the action buttons
                                                         ].map((header, i) => (
                                                             <div
@@ -225,7 +306,8 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                                                                     "bg-red-50 text-red-800",
                                                                     "bg-purple-50 text-purple-800",
                                                                     "bg-indigo-50 text-indigo-800",
-                                                                ][i % 6]} `}
+                                                                    "bg-sky-50 text-sky-800",
+                                                                ][i % 7]} `}
                                                             >
                                                                 {header}
                                                             </div>
@@ -238,26 +320,27 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                                                                 <div className="p-2 bg-green-100 w-[250px] overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{subItem.item_make}</div>
                                                                 <div className="p-2 bg-yellow-100 w-[250px] overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{subItem.item_model}</div>
                                                                 <div className="p-2 bg-red-100 w-[250px] overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{subItem.item_part}</div>
-                                                                <div className="p-2 bg-purple-100 w-[350px] overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{subItem.description}</div>
+                                                                <div className="p-2 bg-purple-100 w-[300px] overflow-x-auto whitespace-nowrap scrollbar-hide" style={{ scrollbarWidth: 'none' }}>{subItem.description}</div>
                                                                 <div className="p-2 bg-indigo-100 w-[300px] overflow-x-auto whitespace-nowrap scrollbar-hide transform" style={{ scrollbarWidth: 'none' }}>
                                                                     {Array.isArray(subItem.item_serial_number)
                                                                         ? subItem.item_serial_number.join(", ")
                                                                         : subItem.item_serial_number}
                                                                 </div>
-                                                                <div className="flex justify-end gap-1 p-2">
+                                                                <div className="p-2 bg-sky-100 w-[200px] overflow-x-auto whitespace-nowrap scrollbar-hide transform" style={{ scrollbarWidth: 'none' }}>{subItem.remarks || "None"}</div>
+                                                                {["Correction Required", "Data Request"].includes(item.po_line_item_status) ? <div className="flex justify-center gap-1 p-2">
                                                                     <button
                                                                         onClick={() => handleEditSubItem(item.po_line_item_id, subItem)}
                                                                     //className="p-1 hover:bg-blue-100 rounded"
                                                                     >
                                                                         <Edit />
                                                                     </button>
-                                                                    <button
+                                                                    {item.po_line_item_status === "Data Request" && <button
                                                                         onClick={() => handleDeleteSubItem(item.po_line_item_id, subItem.po_line_item_id)}
                                                                     //className="p-1 hover:bg-red-100 rounded"
                                                                     >
                                                                         <DeleteIcon />
-                                                                    </button>
-                                                                </div>
+                                                                    </button>}
+                                                                </div> : <span className="p-2 text-gray-500">{item.po_line_item_status}</span>}
                                                             </React.Fragment>
                                                         ))}
                                                     </div>
@@ -279,6 +362,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                         </div>
                     ))}
                 </div>
+                {!lineItem?.length && (<p className="w-full text-center text-sm text-gray-500">Select PO for line items</p>)}
                 {/* <button
                     onClick={() => {
                         const newLineItemId = uuidv4();
@@ -291,7 +375,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                 </button> */}
             </div>
             {/* checkbox for digitally signed */}
-            <div className="flex items-center gap-2 mb-2  border border-gray-300 rounded-md p-4 bg-slate-50">
+            {task !== 'Create Inspection' && <div className="flex items-center gap-2 mb-2  border border-gray-300 rounded-md p-4 bg-slate-50">
                 <input
                     type="checkbox"
                     id="digitalSigned"
@@ -300,7 +384,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                     onChange={(e) => setDigitalSignature(e.target.checked ? 'Digitally_Esign' : 'Physically_Sign')}
                 />
                 <label htmlFor="digitalSigned">Click here if you want to digitally sign the certificate for this inspection.</label>
-            </div>
+            </div>}
 
             <div className="flex justify-end gap-4 mt-4">
                 <button
@@ -310,7 +394,7 @@ const LineItemForm = ({ po, defaultValues, onSubmit, onCancel, loading, task }) 
                     Cancel
                 </button>
                 <button
-                    onClick={(e) => onSubmit(e, lineItem, digitalSignature)}
+                    onClick={(e) => onSubmit(e, lineItem.filter(li => li.selected), digitalSignature)}
                     className={`inline-flex items-center justify-center px-6 py-2 bg-green-400 hover:bg-green-300 text-white font-semibold rounded-lg transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {loading ? (<OnSubmitLoading />) : 'Submit'}

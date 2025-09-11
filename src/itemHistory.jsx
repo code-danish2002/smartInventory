@@ -1,8 +1,9 @@
 import React from "react";
-import { FaCalendar, FaLocationDot, FaUserTie, FaStore, FaHammer, FaArrowDown, FaBoxOpen, FaClipboardCheck } from "react-icons/fa6"; // Importing more icons
+import { FaCalendar, FaLocationDot, FaUserTie, FaStore, FaHammer, FaArrowDown, FaBoxOpen, FaClipboardCheck } from "react-icons/fa6";
 import { FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
 import { FaTruckLoading } from "react-icons/fa";
-const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased max-width slightly for better alternating layout
+
+const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => {
   if (!Array.isArray(data) || data.length === 0) return null;
 
   // Stage accent colors
@@ -11,7 +12,6 @@ const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased ma
     "Inspection": "border-blue-400",
     "At Store": "border-purple-400",
     "On Site": "border-green-400",
-    // Add default or more specific colors if needed for other phases
     "Default": "border-gray-400",
   };
 
@@ -23,44 +23,54 @@ const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased ma
     "Receive Pending at Store": { color: "bg-yellow-100 text-yellow-800", icon: FaStore },
     "Received at Store": { color: "bg-green-100 text-green-800", icon: FaCheckCircle },
     "Receive Reject at Store": { color: "bg-red-100 text-red-800", icon: FaExclamationTriangle },
-    "Receive Pending at Site": { color: "bg-yellow-100 text-yellow-800", icon: FaHammer }, // Using hammer for site work/receiving
+    "Receive Pending at Site": { color: "bg-yellow-100 text-yellow-800", icon: FaHammer },
     "Received at Site": { color: "bg-green-100 text-green-800", icon: FaCheckCircle },
     "Receive Reject at Site": { color: "bg-red-100 text-red-800", icon: FaExclamationTriangle },
-    // Default for statuses not explicitly listed
     "Default": { color: "bg-gray-100 text-gray-800", icon: FaBoxOpen },
   };
 
-  // Group data by 'phase' and sort by 'created_at' within each phase
-  const grouped = data.reduce((acc, item) => {
-    const stage = item.phase;
-    if (!acc[stage]) {
-      acc[stage] = [];
-    }
-    acc[stage].push(item);
-    return acc;
-  }, {});
-
-  // Sort phases by the created_at of their first item (to maintain general chronological flow)
-  const entries = Object.entries(grouped).sort(([, itemsA], [, itemsB]) => {
-    // Sort items within each phase
-    itemsA.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    itemsB.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    // Sort phases based on their earliest item's created_at
-    return new Date(itemsA[0].created_at) - new Date(itemsB[0].created_at);
+  // ---------- NEW: Create groups of consecutive phases in chronological order ----------
+  // 1. Sort the whole list by created_at (oldest -> newest). If created_at is missing/invalid, keep original relative order.
+  const sortedData = [...data].sort((a, b) => {
+    const ta = Date.parse(a?.created_at) || 0;
+    const tb = Date.parse(b?.created_at) || 0;
+    return ta - tb;
   });
 
+  // 2. Scan sorted data and group consecutive items that share the same phase.
+  const groups = [];
+  let currentPhase = null;
+  let currentItems = [];
+
+  for (const item of sortedData) {
+    const phase = item?.phase ?? "Unknown";
+    if (phase === currentPhase) {
+      currentItems.push(item);
+    } else {
+      if (currentItems.length) {
+        groups.push({ phase: currentPhase, items: currentItems });
+      }
+      currentPhase = phase;
+      currentItems = [item];
+    }
+  }
+  if (currentItems.length) groups.push({ phase: currentPhase, items: currentItems });
+
+  // `groups` is an array like [{ phase: "Upload", items: [...] }, { phase: "Inspection", items: [...] }, ...]
+  const entries = groups; // your rendering loop expects entries
+
+  // ------------------------------------------------------------------------------
 
   return (
     <div className={`w-full ${maxWidth} mx-auto max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100`}>
       <div className="flex flex-col items-center space-y-8 p-6">
-        {entries.map(([stage, items], phaseIdx) => (
-          <React.Fragment key={stage}>
+        {entries.map(({ phase: stage, items }, phaseIdx) => (
+          <React.Fragment key={`${stage}-${phaseIdx}`}>
             {/* Phase Header / Milestone Card */}
             <div
               className={`relative w-full bg-white border-l-4 ${stageColors[stage] || stageColors["Default"]} p-4 pl-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-200`}
             >
               <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full border-4 border-current">
-                 {/* Icon for the phase itself, could be dynamic based on stage */}
                  <FaClipboardCheck className={`text-xl ${
                     stage === "Upload" ? "text-cyan-500" :
                     stage === "Inspection" ? "text-blue-500" :
@@ -72,30 +82,28 @@ const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased ma
                 <h3 className="text-2xl font-extrabold text-gray-800">{stage}</h3>
                 <span className="text-sm text-gray-500">{items.length} step{items.length > 1 ? "s" : ""}</span>
               </div>
-              {/* Individual History Items within the phase */}
+
               <div className="space-y-4 pt-2">
                 {items.map((item, itemIdx) => {
                   const statusInfo = statusDetails[item.item_status] || statusDetails["Default"];
                   const StatusIcon = statusInfo.icon;
-                  const isEven = itemIdx % 2 === 0; // For alternating layout
+                  const isEven = itemIdx % 2 === 0;
 
                   return (
                     <div
-                      key={item.tracking_id}
+                      key={item.tracking_id ?? `${phaseIdx}-${itemIdx}`}
                       className={`relative flex items-start p-3 bg-gray-50 rounded-lg shadow-sm ${
-                        isEven ? "pr-10" : "pl-10 justify-end flex-row-reverse" // Alternating class for spacing and direction
+                        isEven ? "pr-10" : "pl-10 justify-end flex-row-reverse"
                       }`}
                     >
-                      {/* Timeline Dot and Line Segment */}
                       <div className={`absolute w-full h-full border-dashed border-l-2 border-gray-300 left-1/2 -translate-x-1/2 ${
-                          isEven ? 'border-r-0' : 'border-l-0' // Adjust border based on side
+                          isEven ? 'border-r-0' : 'border-l-0'
                       }`}>
                           <div className={`absolute w-3 h-3 bg-gray-400 rounded-full top-1/2 -translate-y-1/2 ${
-                              isEven ? '-left-2' : '-right-2' // Dot position
+                              isEven ? '-left-2' : '-right-2'
                           }`}></div>
                       </div>
 
-                      {/* Content of the history item */}
                       <div className={`flex flex-col flex-grow z-10 bg-gray-50 p-2 rounded-lg ${
                           isEven ? "text-left" : "text-right"
                       }`}>
@@ -107,12 +115,12 @@ const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased ma
                         </div>
                         <div className="text-xs text-gray-600 flex items-center mb-0.5">
                           <FaCalendar className="mr-1" />
-                          {new Date(item.created_at).toLocaleString()}
+                          {item.created_at ? new Date(item.created_at).toLocaleString() : "—"}
                         </div>
-                        {item.sender_user_name && (
+                        {item.receiver_user_name && (
                           <div className="text-xs text-gray-600 flex items-center mb-0.5">
                             <FaUserTie className="mr-1" />
-                            {item.sender_user_name}
+                            {item.receiver_user_name}
                           </div>
                         )}
                         {item.item_location && (
@@ -127,7 +135,7 @@ const ItemHistory = ({ data = [], maxWidth = "max-w-4xl" }) => { // Increased ma
                 })}
               </div>
             </div>
-            {/* Arrow between phases */}
+
             {phaseIdx < entries.length - 1 && (
               <FaArrowDown className="text-gray-400 text-3xl my-3 animate-bounce" />
             )}
