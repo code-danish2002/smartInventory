@@ -28,5 +28,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/cnocitpc4/smartinventory:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/cnocitpc4/smartinventory:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartinventory:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartinventory:${{ github.sha }}
