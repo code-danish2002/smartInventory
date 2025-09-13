@@ -8,13 +8,17 @@ ARG VITE_API_URL
 # expose it to Vite’s build
 ENV VITE_API_URL=${VITE_API_URL}
 
-# Switch to the 'node' user early
+# The user is 'root' by default here.
+# Change ownership of the app directory to the 'node' user
+RUN chown -R node:node /app
+
+# Switch to the 'node' user to prevent permission errors
 USER node
 
 # install deps
 # Use the --chown flag to copy files with the correct ownership
 COPY --chown=node:node package.json package-lock.json* ./
-RUN npm ci --verbose
+RUN npm ci
 
 # copy all source files to the working directory
 COPY --chown=node:node . .
