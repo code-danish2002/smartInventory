@@ -9,7 +9,7 @@ ENV VITE_API_URL=${VITE_API_URL}
 
 # install deps
 COPY package.json package-lock.json* ./
-RUN npm ci --silent
+RUN npm ci
 
 # copy source & build
 COPY . .
