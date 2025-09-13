@@ -14,7 +14,7 @@ USER node
 # install deps
 # Use the --chown flag to copy files with the correct ownership
 COPY --chown=node:node package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --verbose
 
 # copy all source files to the working directory
 COPY --chown=node:node . .
