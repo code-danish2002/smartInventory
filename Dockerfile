@@ -7,12 +7,12 @@ ARG VITE_API_URL
 # expose it to Vite’s build
 ENV VITE_API_URL=${VITE_API_URL}
 
-# install deps
-COPY package.json package-lock.json* ./
-# Change the ownership of the files to the 'node' user
-RUN chown -R node:node /app
-# Switch to the 'node' user before running npm ci to prevent permission errors
+# Switch to the 'node' user early
 USER node
+
+# install deps
+# Use the --chown flag to copy files with the correct ownership
+COPY --chown=node:node package.json package-lock.json* ./
 RUN npm ci
 
 # copy source & build
