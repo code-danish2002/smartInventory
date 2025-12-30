@@ -49,7 +49,7 @@ api.interceptors.response.use(
         isRefreshing = true;
         const refreshToken = getRefreshTokenFn();
 
-        refreshCall = api.post('/refresh', {refresh_token: refreshToken}, { })
+        refreshCall = api.post('/refresh', {refresh_token: refreshToken})
           .then(({ data }) => {
             const { access_token, refresh_token, expires_in } = data;
             //console.log('refresh token', data, 'access token', access_token, 'refresh token', refresh_token, 'expires in', expires_in);

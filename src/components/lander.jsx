@@ -10,25 +10,24 @@ const Lander = () => {
 
     React.useEffect(() => {
         if (isAuthenticated) {
-            console.log("User is authenticated");
-            navigate("/home", { replace: true });
+            navigate("/", { replace: true });
         }
     }, [isAuthenticated, navigate, login]);
 
     React.useEffect(() => {
-  // Push a dummy state to prevent back navigation
-  window.history.pushState(null, "", window.location.href);
-  
-  const handlePopState = () => {
-    window.history.pushState(null, "", window.location.href);
-  };
+        // Push a dummy state to prevent back navigation
+        window.history.pushState(null, "", window.location.href);
 
-  window.addEventListener("popstate", handlePopState);
+        const handlePopState = () => {
+            window.history.pushState(null, "", window.location.href);
+        };
 
-  return () => {
-    window.removeEventListener("popstate", handlePopState);
-  };
-}, []);
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
+    }, []);
 
 
     const params = new URLSearchParams(window.location.search);

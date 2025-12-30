@@ -6,6 +6,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import './index.css';
 import AppProvider from './components/appProvider.jsx';
 import { ToastProvider } from './context/toastProvider.jsx';
+import { AuthProvider } from './context/authContext.jsx';
 
 const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container);
@@ -13,11 +14,13 @@ const root = ReactDOM.createRoot(container);
 root.render(
   <React.StrictMode>
     <Router>
-      <AppProvider>
-        <ToastProvider>
-          <App />
-        </ToastProvider>
-      </AppProvider>
+      <ToastProvider>
+        <AppProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </AppProvider>
+      </ToastProvider>
     </Router>
   </React.StrictMode>
 );

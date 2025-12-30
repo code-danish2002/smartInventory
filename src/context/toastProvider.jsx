@@ -17,18 +17,25 @@ export function ToastProvider({ children }) {
         setToasts(prev => prev.filter(t => t.id !== id));
     }, []);
 
-    console.log('ToastProvider toasts:', toasts);
     return (
         <ToastContext.Provider value={{ addToast }}>
             {children}
-            <div className="flex flex-col items-end fixed top-4 right-4 space-y-3 z-50 w-max max-w-[90vw]">
+            <div className="
+                flex flex-col items-end fixed top-4 right-4 // Position toasts in the top-right
+                space-y-3 z-[9999]
+                w-full max-w-md sm:max-w-lg md:max-w-xl // Max width ensures responsiveness
+                pointer-events-none // Allow clicks to pass through empty space
+            ">
                 {toasts.map(t => (
-                    <ShowApiMessage
-                        key={t.id}
-                        id={t.id}
-                        message={t.message}
-                        onClose={ removeToast }
-                    />
+                    // Wrap the ShowApiMessage to enforce max width on the outer container
+                    // and allow pointer-events on the toast itself
+                    <div key={t.id} className="w-full sm:w-auto pointer-events-auto">
+                        <ShowApiMessage
+                            id={t.id}
+                            message={t.message}
+                            onClose={ removeToast }
+                        />
+                    </div>
                 ))}
             </div>
         </ToastContext.Provider>

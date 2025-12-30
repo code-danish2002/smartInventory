@@ -340,7 +340,7 @@ const CombinedPdfManager = ({ isOpen, po_id, po_line_item_id, onSubmit, onCancel
         reader.readAsDataURL(file);
       });
       const base64 = dataUrl.split(',')[1];
-      const currentPhase = po_line_item_id ? 'Inspection' : 'Upload';
+      const currentPhase = po_line_item_id ? 'Approve PO' : 'Upload';
       await api.post(`/api/pos/${po_id}/upload`, { pdf: base64, phase: currentPhase }, { params: { po_id, po_line_item_id } });
       onCancel();
       onSubmit();

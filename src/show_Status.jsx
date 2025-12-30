@@ -12,7 +12,7 @@ export const ShowStatus = ({ status = [] }) => {
   // 1. Define your display order and icons
   const steps = [
     { name: "Fill",       icon: <FaWpforms className="w-5 h-5" /> },
-    { name: "Inspection", icon: <FaClipboardList className="w-5 h-5" /> },
+    { name: "Approve PO", icon: <FaClipboardList className="w-5 h-5" /> },
     { name: "Store",      icon: <FaStore className="w-5 h-5" /> },
     { name: "Received",   icon: <FaTruck className="w-5 h-5" /> },
     //{ name: "",   icon: <RiUserReceived2Line className="w-5 h-5" /> },
@@ -21,9 +21,9 @@ export const ShowStatus = ({ status = [] }) => {
   // 2. Map raw statuses to logical stage names
   const rawToStage = {
     Upload:      "Fill",
-    Pending:     "Inspection",
-    Approve:    "Inspection",
-    Reject:      "Inspection",
+    Pending:     "Approve PO",
+    Approve:    "Approve PO",
+    Reject:      "Approve PO",
     Waiting:     "Store",
     Stored:      "Store",
     "Rejected by Store": "Store",

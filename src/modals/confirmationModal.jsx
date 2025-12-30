@@ -11,6 +11,7 @@ export default function ConfirmationModal({
   loading = false,
 }) {
   const [remarks, setRemark] = useState('');
+  console.log(isOpen, actionType, itemName, po_id, loading);
 
   // reset remark whenever modal re‑opens
   useEffect(() => {
@@ -26,7 +27,8 @@ export default function ConfirmationModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    actionType === 'approve' ? submitModal({ action: 'approve', pdf_sign_type: 'Digitally_Esign' }) : actionType === 'reject' ? submitModal({ action: 'reject', remarks }) : onCancel();
+    actionType === 'approve' ? submitModal({ action: 'approve', pdf_sign_type: 'Digitally_Esign' }) : actionType === 'reject' ? submitModal({ action: 'reject', remarks }) : null;
+    onCancel();
   };
 
   return (

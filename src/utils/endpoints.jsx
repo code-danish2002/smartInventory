@@ -5,22 +5,28 @@ const endpoints = {
         details: { url: '/api/dashboard/{status}', params: ['status'], body: [] },
     },
 
+    Certificates: {
+        get: { url: '/api/po_details_for_pdf', params: ['page', 'limit'], body: [] },
+    },
+
     Users: {
         get: { url: '/api/user_details_full', params: ['page', 'limit'], body: [] },
-        update: { url: '/api/user-details/{user_id}', params: ['user_id'], 
+        update: {
+            url: '/api/user-details/{user_id}', params: ['user_id'],
             body: [
                 { name: 'user_location', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'User Location', placeholder: 'Enter User Location' },
                 { name: 'pop_id', type: 'number', element: 'select', isRequired: true, isDisabled: false, label: 'POP Name' },
-            ] },
+            ]
+        },
     },
 
     'All POs': {
-        get: { url: '/api/poData', params: ['page', 'limit'], body: [] },
+        get: { url: '/api/poData', params: ['page', 'limit', 'search'], body: [] },
         details: { url: '/api//poData/{po_id}', params: ['po_id'], body: [] },
     },
 
     Firm: {
-        get: { url: '/api/firm/details/{page}/{limit}', params: ['page', 'limit'], body: [] },
+        get: { url: '/api/firm/details', params: ['page', 'limit'], body: [] },
         create: {
             url: '/api/firm/names', params: [],
             body: [
@@ -120,14 +126,14 @@ const endpoints = {
         'upload_pdf': { url: '/api/pos/{po_id}/upload', params: ['po_id'], body: [] },
     },
 
-    'Inspection': {
+    'Approve PO': {
         'request-approval': { url: '/api/inspection/{id}', params: ['id'], body: [] },
         'store': { url: '/api/store-items', params: [], body: [] },
         'dispatch': { url: '/api/dispatches', params: [], body: [] },
     },
 
     'At Store': {
-        'request-approval': { url: '/api/store-items/{stored_item_id}', params: ['stored_item_id'], body: [] },
+        'request-approval': { url: '/api/store-items/action', params: [], body: [] },
     },
 
     Stores: {
@@ -136,14 +142,14 @@ const endpoints = {
             url: '/api/stores', params: [],
             body: [
                 { name: 'store_name', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'Store Name' },
-                { name: 'pop_id', type: 'number', element: 'select', isRequired: true, isDisabled: false, label: 'POP Name' },
+                { name: 'pop_id', type: 'number', element: 'async-select', isRequired: true, isDisabled: false, label: 'POP Name', placeholder: 'Type & Select Name' },
             ]
         },
         update: {
             url: '/api/stores/{id}', params: ['store_id'],
             body: [
                 { name: 'store_name', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'Store Name' },
-                { name: 'pop_id', type: 'number', element: 'select', isRequired: true, isDisabled: false, label: 'POP Name' },
+                { name: 'pop_id', type: 'number', element: 'async-select', isRequired: true, isDisabled: false, label: 'POP Name', placeholder: 'Type & Select Name' },
             ]
         },
         delete: { url: '/api/stores/{id}', params: ['store_id'], body: [] },
@@ -151,11 +157,15 @@ const endpoints = {
     },
 
     'On Site': {
-        'request-approval': { url: '/api/site-items/{item_received_id}', params: ['po_item_details_id'], body: [] },
+        'request-approval': { url: '/api/site-items/action', params: [], body: [] },
     },
 
     'Track History': {
         'get': { url: '/api/tracking/{po_item_details_id}', params: ['po_item_details_id'], body: [] },
+    },
+
+    'RMA History': {
+        'get': { url: '/api/tracking/{po_item_details_id}', params: ['po_item_details_id', 'rma_id'], body: [] },
     },
     'Rejected': {
         update: {
@@ -173,12 +183,13 @@ export default function getEndpoint(item, method, part, params = {}) {
     const config = endpoints[item]?.[method];
 
     if (!config) {
-        return `Endpoint for ${item} with method ${method} not found`;
+        console.error(`Endpoint for ${item} with method ${method} not found`);
+        return null;
     }
 
     if (part === 'url') {
         return config.url.replace(/{(\w+)}/g, (match, placeholder) => {
-            if (item === 'Inspection' && method === 'request-approval' && placeholder === 'id') return params['po_id'];
+            if (item === 'Approve PO' && method === 'request-approval' && placeholder === 'id') return params['po_id'];
             if (item === 'Line Item' && method === 'get' && placeholder === 'poId') return params['po_id'];
             if (item === 'Item Details' && method === 'get' && placeholder === 'liId') return params['po_line_item_id'];
             if (item === 'At Store' && method === 'request-approval' && placeholder === 'stored_item_id') return params['po_item_details_id'];

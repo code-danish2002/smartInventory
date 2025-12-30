@@ -4,11 +4,12 @@ import { useToast } from "../context/toastProvider";
 import { Live } from "../utils/icons";
 import { MdOutlineInventory } from "react-icons/md";
 
-export default function LiveOrSpare({ po_item_details_id, onClose, onAction}) {
+export default function LiveOrSpare({ po_item_details_ids, onClose, onAction}) {
     const [remarks, setRemarks] = useState("");
     const addToast = useToast();
+    console.log(po_item_details_ids);
     async function handleSubmit(body) {
-        api.post(`/api/spare_action/${po_item_details_id}`, body).then((res) => {
+        api.post(`/api/spare_action/bulk`, body).then((res) => {
             addToast(res);
             onAction();
             onClose();
@@ -20,7 +21,7 @@ export default function LiveOrSpare({ po_item_details_id, onClose, onAction}) {
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => {
-                                        handleSubmit({ action: "spare", remarks });
+                                        handleSubmit({ po_item_details_ids: po_item_details_ids, action: "spare", remarks });
                                     }}
                                     className="flex-1 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 min-w-[140px]"
                                 >
@@ -28,7 +29,7 @@ export default function LiveOrSpare({ po_item_details_id, onClose, onAction}) {
                                 </button>
                                 <button
                                     onClick={() => {
-                                        handleSubmit({ action: "live", remarks });
+                                        handleSubmit({ po_item_details_ids: po_item_details_ids, action: "live", remarks });
                                     }}
                                     className="flex-1 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 min-w-[140px]"
                                 >

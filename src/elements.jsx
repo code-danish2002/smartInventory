@@ -90,7 +90,7 @@ export const MyInput = ({ property, value, handleInputChange }) => {
             id={property.name}
             name={property.name}
             type={property.type}
-            placeholder={property.placeholder}
+            placeholder={property.placeholder || property.label}
             disabled={property.isDisabled}
             required={property.isRequired}
             value={value}

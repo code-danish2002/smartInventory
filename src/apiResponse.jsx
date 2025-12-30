@@ -11,10 +11,9 @@ export default function ShowApiMessage({ id, message, onClose }) {
 
     // Extract status code if available.
     const statusCode = message?.response?.status || message?.status;
-    const rawDetail = message?.response?.data?.message || message?.response?.data?.detail  || message?.response?.data?.error || message?.response?.statusText || message?.['error'];
+    const rawDetail = message?.response?.data?.message || message?.response?.data?.detail || message?.response?.data?.error || message?.response?.statusText || message?.['error'] || message?.message;
     const messageDetails = normalizeDetails(rawDetail);
-    console.log('statusCode', statusCode, message, 'rawDetail', rawDetail, messageDetails, 'message', message?.response?.data?.detail, 'other', message?.message);
-    console.log('message', message);
+    console.log('statusCode', statusCode, 'message', message, 'rawDetail', rawDetail, messageDetails, 'message', message?.response?.data?.detail, 'other', message?.message);
 
     // Variables for displaying the message.
     let statusType = "";
@@ -92,12 +91,12 @@ export default function ShowApiMessage({ id, message, onClose }) {
 
     // Optionally auto-close the message after 5 seconds.
     useEffect(() => {
-      const timer = setTimeout(() => {
-        setVisible(false);
-        if (onClose) onClose(id);
-      }, 10000);
+        const timer = setTimeout(() => {
+            setVisible(false);
+            if (onClose) onClose(id);
+        }, 3000);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
     }, [onClose, id]);
 
     const handleClose = () => {
@@ -107,14 +106,14 @@ export default function ShowApiMessage({ id, message, onClose }) {
 
     if (!visible) return null;
     const borderColor = {
-    success: "border-green-300",
-    "client-error": "border-red-300",
-    "server-error": "border-red-300",
-    "no-response": "border-yellow-300",
-    informational: "border-blue-300",
-    redirect: "border-purple-300",
-    unknown: "border-gray-300",
-}[statusType] || "border-gray-300";
+        success: "border-green-300",
+        "client-error": "border-red-300",
+        "server-error": "border-red-300",
+        "no-response": "border-yellow-300",
+        informational: "border-blue-300",
+        redirect: "border-purple-300",
+        unknown: "border-gray-300",
+    }[statusType] || "border-gray-300";
 
     return (
         <div className={`flex justify-between items-center max-w-screen w-full p-2 rounded-lg shadow-lg border-2 ${borderColor} bg-white`}>

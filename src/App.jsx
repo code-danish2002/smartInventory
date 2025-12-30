@@ -1,10 +1,9 @@
 // src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/authContext.jsx';
-import { ShowDetails } from './components/showDetails.jsx';
-import CreatePO from './components/create-po/createPO.jsx';
 import Home from './components/homePage.jsx';
 import Lander from './components/lander.jsx';
+import { CurrentRenderProvider } from './context/renderContext.jsx';
 
 const App = () => {
 
@@ -19,14 +18,14 @@ const App = () => {
   }
 
   return (
-    <Routes>
-      <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
-      <Route path="/login" element={<PublicRoute><Lander /></PublicRoute>} />
-      <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
-      <Route path="/showData" element={<PrivateRoute><ShowDetails /></PrivateRoute>} />
-      <Route path="po-inspection/:task" element={<PrivateRoute><CreatePO /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+    <CurrentRenderProvider>
+      <Routes>
+        <Route path="/login" element={<PublicRoute><Lander /></PublicRoute>} />
+        <Route path="/home" element={<Navigate to="/" replace />} /> {/* redirect */}
+        <Route path="/" element={<PrivateRoute><Home /></PrivateRoute>} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </CurrentRenderProvider>
   );
 };
 

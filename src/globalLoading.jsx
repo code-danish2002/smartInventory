@@ -21,3 +21,19 @@ export default function GlobalLoading() {
         </div>
     );
 };
+
+const ContentLoading = () => {
+    return (
+        <div className="flex items-center justify-center w-full h-full min-h-[50vh] p-8">
+            <div 
+                className="w-12 h-12 border-4 border-t-4 border-t-sky-500 border-gray-200 rounded-full animate-spin"
+                role="status"
+                aria-label="Content loading"
+            >
+                <span className="sr-only">Loading...</span> 
+            </div>
+        </div>
+    );
+};
+
+export { ContentLoading };

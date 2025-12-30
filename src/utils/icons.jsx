@@ -41,10 +41,10 @@ export function DownArrow(props) {
 
 export function Edit(props) {
   return (
-    <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    className="h-8 w-8 text-blue-500 p-1 rounded-md hover:bg-blue-100 transition duration-200" 
-    viewBox="0 0 20 20" fill="currentColor" {...props}>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-8 w-8 text-blue-500 p-1 rounded-md hover:bg-blue-100 transition duration-200"
+      viewBox="0 0 20 20" fill="currentColor" {...props}>
       <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" />
       <path fillRule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clipRule="evenodd" />
     </svg>
@@ -89,8 +89,7 @@ export function DraftOrders(props) {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
-      width="1em"
-      height="1em"
+      className='w-6 h-6'
       {...props}
     >
       <path
@@ -347,23 +346,6 @@ export function Warning(props) {
   )
 }
 
-export function PendingActions(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      width="1.2em"
-      height="1.2em"
-      {...props}
-    >
-      <path
-        fill="currentColor"
-        d="M18 3h-3.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H6c-1.1 0-2 .9-2 2v15c0 1.1.9 2 2 2h6.11a6.7 6.7 0 0 1-1.42-2H6V5h2v1c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2V5h2v5.08c.71.1 1.38.31 2 .6V5c0-1.1-.9-2-2-2m-6 2c-.55 0-1-.45-1-1s.45-1 1-1s1 .45 1 1s-.45 1-1 1m5 7c-2.76 0-5 2.24-5 5s2.24 5 5 5s5-2.24 5-5s-2.24-5-5-5m1.29 7l-1.65-1.65a.5.5 0 0 1-.15-.35v-2.49c0-.28.22-.5.5-.5s.5.22.5.5v2.29l1.5 1.5a.495.495 0 1 1-.7.7"
-      ></path>
-    </svg>
-  )
-}
-
 export function TaskApproved(props) {
   return (
     <svg
@@ -556,23 +538,6 @@ export function PreviewFill(props) {
         fill="currentColor"
         d="M21.52 14.53a1.89 1.89 0 0 1-1.48 1.76l-3.16.52l-.09.09a.4.4 0 0 0-.09.14l-.5 2.91a1.94 1.94 0 0 1-.68 1.06a1.9 1.9 0 0 1-1.1.41h-.09a1.94 1.94 0 0 1-1.79-1.24l-2.79-7.9a1.9 1.9 0 0 1 .45-2a1.8 1.8 0 0 1 .94-.51a1.87 1.87 0 0 1 1.07.07l8 2.78a1.93 1.93 0 0 1 1.29 1.91z"
       ></path>
-    </svg>
-  )
-}
-
-export function Download(props) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      width="1em"
-      height="1em"
-      {...props}
-    >
-      <g fill="currentColor" fillRule="evenodd" clipRule="evenodd">
-        <path d="M13 11.15V4a1 1 0 1 0-2 0v7.15L8.78 8.374a1 1 0 1 0-1.56 1.25l4 5a1 1 0 0 0 1.56 0l4-5a1 1 0 1 0-1.56-1.25z"></path>
-        <path d="M9.657 15.874L7.358 13H5a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2h-2.358l-2.3 2.874a3 3 0 0 1-4.685 0M17 16a1 1 0 1 0 0 2h.01a1 1 0 1 0 0-2z"></path>
-      </g>
     </svg>
   )
 }
