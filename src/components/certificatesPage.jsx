@@ -1,0 +1,383 @@
+// src/components/certificatesPage.jsx
+import { useEffect, useState } from 'react';
+import api from '../api/apiCall';
+import NoDataAvailable from '../utils/NoDataUi';
+import { Search } from 'lucide-react';
+import { ContentLoading } from '../globalLoading';
+
+// Helper Functions
+const formatDate = (isoString) => {
+    try {
+        return new Date(isoString).toLocaleDateString('en-US', {
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
+        });
+    } catch (e) {
+        return 'N/A';
+    }
+};
+
+const getPhaseColor = (phase) => {
+    switch (phase.toLowerCase()) {
+        case 'site': return { bg: 'bg-green-100', text: 'text-green-800' };
+        case 'dispatch': return { bg: 'bg-blue-100', text: 'text-blue-800' };
+        case 'store': return { bg: 'bg-purple-100', text: 'text-purple-800' };
+        case 'upload': return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
+        default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
+    }
+};
+
+const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
+    const { page, limit, totalPages, total } = pagination;
+
+    if (totalPages < 1) return null;
+
+    // Logic to display a reasonable number of page buttons (max 5)
+    const pageNumbers = [];
+    const maxPagesToShow = 3;
+    let startPage = Math.max(1, page - Math.floor(maxPagesToShow / 2));
+    let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+    // Adjust startPage if we're near the end
+    if (endPage - startPage + 1 < maxPagesToShow) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+
+    const PageButton = ({ p, current }) => (
+        <button
+            onClick={() => onPageChange(p)}
+            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border transition duration-150 ease-in-out ${current ? 'bg-teal-600 text-white border-teal-600 shadow-md z-10' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+            aria-current={current ? 'page' : undefined}
+            aria-label={`Go to page ${p}`}
+        >
+            {p}
+        </button>
+    );
+
+    return (
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-auto">
+            {/* Mobile View */}
+            <div className="flex-1 flex justify-between sm:hidden">
+                <button
+                    onClick={() => onPageChange(page - 1)}
+                    disabled={page === 1}
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <button
+                    onClick={() => onPageChange(page + 1)}
+                    disabled={page === totalPages}
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                    Next
+                </button>
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div className="flex items-center space-x-2">
+                    <label htmlFor="limit" className="text-sm text-gray-600 hidden sm:inline">Show</label>
+                    <select
+                        id="limit"
+                        value={limit}
+                        onChange={(e) => onLimitChange(Number(e.target.value))}
+                        className="block w-full pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 rounded-md bg-white shadow-sm"
+                    >
+                        {[7, 10, 20, 50].map((val) => (
+                            <option key={val} value={val}>{val}</option>
+                        ))}
+                    </select>
+                    <span className="text-sm text-gray-600">entries</span>
+                </div>
+                <div>
+                    <p className="text-sm text-gray-700">
+                        Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
+                        <span className="font-medium">{total}</span> results
+                    </p>
+                </div>
+                <div>
+                    <nav className="relative z-0 inline-flex rounded-lg shadow-sm -space-x-px" aria-label="Pagination">
+                        {/* Previous Button */}
+                        <button
+                            onClick={() => onPageChange(page - 1)}
+                            disabled={page === 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            <span className="sr-only">Previous</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+
+                        {/* Page Numbers */}
+                        {pageNumbers.map(p => (
+                            <PageButton key={p} p={p} current={p === page} />
+                        ))}
+
+                        {/* Next Button */}
+                        <button
+                            onClick={() => onPageChange(page + 1)}
+                            disabled={page === totalPages}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                        >
+                            <span className="sr-only">Next</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ReportTable = ({ data = [] }) => {
+    if (Array.isArray(data) && data.length === 0) {
+        return (
+            <NoDataAvailable />
+        );
+    }
+
+    const colWidths = [
+        'w-1/5', // PO Number (Increased width)
+        'w-1/4', // Issue Date (Increased width)
+        'w-1/4', // Created Date (Increased width)
+        'w-1/5', // Available Phases (Decreased width)
+        'w-[100px]' // Action (Fixed smaller width)
+    ];
+
+    return (
+        // Set a min-width to ensure the table content doesn't shrink too much
+        <div className="flex-1 overflow-y-auto min-h-0">
+            <table className="min-w-full divide-y divide-gray-200 table-fixed">
+
+                {/* Table Header */}
+                <thead className="sticky top-0 z-10 bg-gray-100">
+                    <tr>
+                        {/* PO Number */}
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tl-xl ${colWidths[0]}`}>PO Number</th>
+                        {/* PO ID REMOVED */}
+                        {/* Issue Date */}
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[1]}`}>Issue Date</th>
+                        {/* Created Date */}
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[2]}`}>Created Date</th>
+                        {/* Available Phases */}
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[3]}`}>Available Phases</th>
+                        {/* Action */}
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-xl ${colWidths[4]}`}>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-200">
+                    {data?.map(po => (
+                        // PO ID column will be excluded in TableRow as well
+                        <TableRow key={po.po_number} po={po} />
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+const TableRow = ({ po }) => {
+    const phaseTags = po?.aggregates?.map(phase => {
+        const colors = getPhaseColor(phase);
+        return (
+            <span
+                key={phase}
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text} mr-1 mb-1 shadow-sm`}
+            >
+                {phase}
+            </span>
+        );
+    });
+
+    return (
+        <tr className="hover:bg-gray-50 transition duration-150 ease-in-out">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{po.po_number}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(po.po_date_of_issue)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(po.po_created_at)}</td>
+            <td className="px-6 py-4">{phaseTags}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <ViewReportsButton poId={po.po_id} poNumber={po.po_number} reportCount={po.count} />
+            </td>
+        </tr>
+    );
+};
+
+const ViewReportsButton = ({ poId, poNumber, reportCount }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [reports, setReports] = useState([]); // State to hold fetched reports
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const fetchReports = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const response = await api.get(`/api/po-pdfs/${poNumber}`);
+            setReports(response.data.data);
+        } catch (error) {
+            setReports([]);
+            setError(error);
+        } finally {
+            setIsLoading(false);
+            setIsModalOpen(true);
+        }
+    }
+    return (
+        <>
+            <button
+                onClick={() => fetchReports()}
+                disabled={isLoading}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150 ease-in-out"
+            >
+                {isLoading ? 'Loading...' : `View ${reportCount} Reports`}
+            </button>
+            {isModalOpen && (
+                <ReportModal
+                    reports={reports}
+                    poNumber={poNumber}
+                    onClose={() => setIsModalOpen(false)}
+                />
+            )}
+        </>
+    );
+};
+
+const ReportModal = ({ reports, poNumber, onClose }) => {
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
+            <div className="relative bg-white w-full max-w-4xl p-6 rounded-xl shadow-2xl mx-4 animate-slide-down">
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-2xl font-semibold"
+                    aria-label="Close"
+                >
+                    &times;
+                </button>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b">
+                    Documents for PO: {poNumber}
+                </h3>
+                <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-6">
+                    {Object.entries(reports).map(([phase, reportList]) => (
+                        Array.isArray(reportList) && reportList.length > 0 && (
+                            <PhaseSection key={phase} phase={phase} reports={reportList} />
+                        )
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const PhaseSection = ({ phase, reports }) => {
+    const colors = getPhaseColor(phase);
+    const links = reports.map((report, index) => {
+        const filename = report.pdf.split('/').pop().split('?')[0].split('_')[3] || `Report ${index + 1}`;
+        return (
+            <a
+                key={index}
+                href={report.pdf}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-teal-400 transition duration-150 ease-in-out text-left"
+            >
+                <div className="flex items-start justify-between">
+                    <span className="text-sm font-medium text-gray-700 truncate">{filename}</span>
+                    <svg className="w-4 h-4 text-teal-600 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-2h8m0 0l-3-3m3 3l-3 3"></path>
+                    </svg>
+                </div>
+                <span className="mt-1 text-xs text-gray-500">
+                    Created: {formatDate(report.pdf_created_at)}
+                </span>
+            </a>
+        );
+    });
+
+    return (
+        <div className="p-4 rounded-xl border border-gray-100 shadow-lg">
+            <div className="flex items-center mb-3">
+                <span className={`text-lg font-semibold px-3 py-1 rounded-full ${colors.bg} ${colors.text} shadow-sm`}>
+                    {phase} Reports
+                </span>
+                <span className="ml-3 text-sm text-gray-500">({reports.length} files)</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {links}
+            </div>
+        </div>
+    );
+};
+
+const PurchaseOrderReportsDashboard = () => {
+    const [data, setData] = useState([]);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            const params = {
+                page,
+                limit,
+                search,
+            };
+            try {
+                const response = await api.get(`/api/po_details_for_pdf`, { params });
+                const { data, pagination } = response.data;
+                setData(data || []);
+                setTotal(pagination.total || 0);
+                setTotalPages(pagination.totalPages || 0);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setData([])
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [page, limit, search]);
+    return (
+        <div className="max-w-7xl mx-auto h-full flex flex-col py-6">
+            {/* Header */}
+            <div className="flex items-center mb-4 justify-between gap-4 text-gray-500 border-b-2">
+                <header className="flex-shrink-0">
+                    <h3 className="font-bold text-gray-500">Purchase Order Certificates</h3>
+                </header>
+
+                <div className="relative w-full hidden md:block md:w-auto">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search PO"
+                        className="w-full py-1 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out text-sm"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            {/* Main Content */}
+            {(
+                <div className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col h-full border border-gray-200">
+                    {loading ? <ContentLoading /> : Array.isArray(data) && data.length > 0 ? <ReportTable data={data} /> : <NoDataAvailable />}
+                    <Pagination pagination={{ page, limit, totalPages, total }} onPageChange={setPage} onLimitChange={(limit) => { setLimit(limit); setPage(1) }} />
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default PurchaseOrderReportsDashboard;
