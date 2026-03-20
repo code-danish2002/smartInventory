@@ -1,3 +1,134 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+@theme {
+    --color-border: #e2e8f0;
+    /* Default light border (gray-200) */
+}
+
+@layer base {
+
+    input,
+    textarea,
+    select {
+        @apply border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-md transition-colors focus:ring-2 focus:ring-blue-500/50 outline-none;
+    }
+
+    button {
+        @apply transition-all duration-200;
+    }
+
+    .modal-overlay {
+        @apply fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-md transition-all duration-300;
+    }
+
+    .dark .modal-overlay {
+        @apply bg-slate-900/60 backdrop-blur-lg;
+    }
+}
+
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+    --select-bg: #ffffff;
+    --select-text: #1e293b;
+    --select-border: #e2e8f0;
+    --select-hover: #f1f5f9;
+    --select-option-hover: #eff6ff;
+    --select-option-selected: #3b82f6;
+    --select-menu-bg: #ffffff;
+}
+
+.dark {
+    --select-bg: #1e293b;
+    --select-text: #f1f5f9;
+    --select-border: #334155;
+    --select-hover: #334155;
+    --select-option-hover: #3d4b60;
+    --select-option-selected: #2563eb;
+    --select-menu-bg: #1e293b;
+}
+
+body {
+    background-color: #ffffff;
+    color: #1e293b;
+    border-color: #e2e8f0;
+}
+
+.dark body {
+    background-color: #020617;
+    color: #f1f5f9;
+    border-color: #334155;
+}
+
+@keyframes slide-down {
+    0% {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+}
+
+@keyframes bell-ring {
+
+    0%,
+    100% {
+        transform: rotate(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: rotate(15deg);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: rotate(-15deg);
+    }
+}
+
+.animate-bell {
+    animation: bell-ring 2s ease-in-out infinite;
+    transform-origin: top center;
+}
+
+/* Global Scrollbar Styles */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #334155;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #475569;
+}

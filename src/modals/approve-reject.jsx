@@ -53,25 +53,25 @@ const ApproveOrReject = ({ isOpen, onClose, params, requestFor, onSuccess }) => 
             isOpen={true}
             onRequestClose={onClose}
             ariaHideApp={false}
-            className="fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300"
-            overlayClassName="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-40"
+            className="fixed inset-0 flex items-center justify-center p-4 z-50 transition-opacity duration-300 outline-none"
+            overlayClassName="modal-overlay"
             contentLabel="Item Inspection"
             shouldCloseOnEsc={true}
             shouldCloseOnOverlayClick={true}
         >
             {/* Modal Content Card */}
-            <div className="bg-white relative rounded-xl shadow-2xl w-full max-w-lg transition-transform duration-300 transform scale-100">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 relative rounded-xl shadow-2xl w-full max-w-lg transition-transform duration-300 transform scale-100">
 
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200">
-                    <h3 className="text-2xl font-extrabold text-gray-900">
+                <div className="p-6 border-b border-gray-200 dark:border-slate-800">
+                    <h3 className="text-2xl font-extrabold text-gray-900 dark:text-slate-100">
                         {isRejecting ? "Provide Rejection Reason" : "Review Action Required"}
                     </h3>
                 </div>
 
                 {/* Body */}
                 <div className="p-6">
-                    <p className="mb-6 text-gray-700">
+                    <p className="mb-6 text-gray-700 dark:text-slate-300">
                         {isRejecting
                             ? "Please provide mandatory remarks explaining why this item is being rejected."
                             : "This PO requires your approval?"}
@@ -79,13 +79,13 @@ const ApproveOrReject = ({ isOpen, onClose, params, requestFor, onSuccess }) => 
 
                     {isRejecting && (
                         <div className="mb-6">
-                            <label htmlFor="reason" className="block text-sm font-medium text-gray-900 mb-2">
+                            <label htmlFor="reason" className="block text-sm font-medium text-gray-900 dark:text-slate-200 mb-2">
                                 Rejection Remarks
                             </label>
                             <textarea
                                 id="reason"
                                 rows="4"
-                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-900 resize-none"
+                                className="w-full p-3 border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-slate-100 resize-none"
                                 placeholder="Enter reason here..."
                                 value={rejectionReason}
                                 onChange={(e) => setRejectionReason(e.target.value)}
@@ -100,13 +100,13 @@ const ApproveOrReject = ({ isOpen, onClose, params, requestFor, onSuccess }) => 
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="p-6 flex justify-end gap-3 bg-gray-50 rounded-b-xl border-t border-gray-200">
+                <div className="p-6 flex justify-end gap-3 bg-gray-50 dark:bg-slate-800/50 rounded-b-xl border-t border-gray-200 dark:border-slate-800">
 
                     {/* General Close Button */}
                     {!isRejecting && (
                         <button
                             onClick={handleClose}
-                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                         >
                             Close
                         </button>
@@ -117,7 +117,7 @@ const ApproveOrReject = ({ isOpen, onClose, params, requestFor, onSuccess }) => 
                         <>
                             <button
                                 onClick={handleCancelReject}
-                                className="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                                className="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-700 rounded-lg hover:bg-gray-300 dark:hover:bg-slate-600 transition-colors"
                             >
                                 <RotateCcw className="w-4 h-4 mr-2" />
                                 Cancel Reject
@@ -139,7 +139,7 @@ const ApproveOrReject = ({ isOpen, onClose, params, requestFor, onSuccess }) => 
                         <>
                             <button
                                 onClick={handleRejectClick}
-                                className="flex items-center px-4 py-2 text-sm font-semibold text-red-600 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+                                className="flex items-center px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                             >
                                 <X className="w-4 h-4 mr-2" />
                                 Reject

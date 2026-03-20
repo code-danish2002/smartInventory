@@ -80,9 +80,9 @@ export default function HelpAndSupport({ status = [] }) {
     const isOpen = openAccordion === id;
 
     return (
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-200 dark:border-slate-800">
         <button
-          className="w-full flex justify-between items-center py-4 px-6 text-left text-lg font-semibold text-gray-800 focus:outline-none"
+          className="w-full flex justify-between items-center py-4 px-6 text-left text-lg font-semibold text-gray-800 dark:text-slate-100 focus:outline-none"
           onClick={() => setOpenAccordion(isOpen ? null : id)}
         >
           <span>{title}</span>
@@ -102,30 +102,30 @@ export default function HelpAndSupport({ status = [] }) {
   };
 
   return (
-    <div className="w-full h-[85vh] overflow-y-auto bg-gray-50 rounded-xl shadow-md p-4">
+    <div className="w-full h-[85vh] overflow-y-auto bg-gray-50 dark:bg-slate-950 rounded-xl shadow-md p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800">Getting Started</h1>
-          <p className="text-gray-600 mt-2">A quick guide to understanding the inspection process flow.</p>
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100">Getting Started</h1>
+          <p className="text-gray-600 dark:text-slate-400 mt-2">A quick guide to understanding the inspection process flow.</p>
         </div>
 
         {/* Process Flow */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Process Flow</h2>
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md p-6 border border-gray-200 dark:border-slate-800 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 mb-6 text-center">Process Flow</h2>
           {/* Desktop View */}
           <div className="hidden md:block mb-8">
             <div className="flex justify-between relative">
               {/* Main timeline */}
-              <div className="absolute top-8 left-0 right-0 h-1 bg-gray-200 z-0"></div>
+              <div className="absolute top-8 left-0 right-0 h-1 bg-gray-200 dark:bg-slate-800 z-0"></div>
 
               {/* Steps */}
               {steps.map((step, index) => (
                 <div key={step.id} className="relative z-10 flex flex-col items-center">
                   <div className="flex flex-col items-center">
-                    <div className={`flex items-center justify-center w-16 h-16 rounded-full mb-2 ${step.bgColor} text-white transition-all duration-300`}>
+                    <div className={`flex items-center justify-center w-16 h-16 rounded-full mb-2 ${step.bgColor} text-white transition-all duration-300 shadow-lg`}>
                       {step.icon}
                     </div>
-                    <span className="text-sm font-medium text-center px-2">{step.name}</span>
+                    <span className="text-sm font-medium text-center px-2 text-gray-700 dark:text-slate-300">{step.name}</span>
                   </div>
                 </div>
               ))}
@@ -137,10 +137,10 @@ export default function HelpAndSupport({ status = [] }) {
             <div className="space-y-4">
               {steps.map((step) => (
                 <div key={step.id} className="flex items-center">
-                  <div className={`flex items-center justify-center w-12 h-12 rounded-full ${step.bgColor} text-white mr-4 flex-shrink-0`}>
+                  <div className={`flex items-center justify-center w-12 h-12 rounded-full ${step.bgColor} text-white mr-4 flex-shrink-0 shadow-md`}>
                     {step.icon}
                   </div>
-                  <span className="font-medium text-gray-800">{step.name}</span>
+                  <span className="font-medium text-gray-800 dark:text-slate-100">{step.name}</span>
                 </div>
               ))}
             </div>
@@ -148,21 +148,21 @@ export default function HelpAndSupport({ status = [] }) {
         </div>
 
         {/* Legend Section */}
-        <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 mb-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
-            <span className="bg-gray-200 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">i</span>
+        <div className="bg-white dark:bg-slate-900 rounded-lg shadow-md p-6 border border-gray-200 dark:border-slate-800 mb-8">
+          <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 mb-4 flex items-center">
+            <span className="bg-gray-200 dark:bg-slate-800 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm text-gray-600 dark:text-slate-400">i</span>
             Process Legend
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {steps.map((step) => (
-              <div key={step.id} className="border-l-4 border-gray-500 pl-4 py-1">
+              <div key={step.id} className="border-l-4 border-gray-300 dark:border-slate-700 pl-4 py-1">
                 <div className="flex items-start">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full mr-3 flex-shrink-0 mt-1 ${step.bgColor} text-white text-sm`}>
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full mr-3 flex-shrink-0 mt-1 ${step.bgColor} text-white text-sm shadow-sm`}>
                     {step.icon}
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800">{step.name}</h4>
-                    <p className="text-gray-600 text-sm mt-1">{step.description}</p>
+                    <h4 className="font-semibold text-gray-800 dark:text-slate-100">{step.name}</h4>
+                    <p className="text-gray-600 dark:text-slate-400 text-sm mt-1">{step.description}</p>
                   </div>
                 </div>
               </div>

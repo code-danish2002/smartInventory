@@ -1,22 +1,26 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-// 1. Import icons from react-icons (assuming Font Awesome for clear visual mapping)
+import { useQueryClient } from '@tanstack/react-query';
 import {
-    FaClipboardList, // PO Re-Fills, PO Requests
-    FaFileUpload,    // Upload PDF
-    FaSearch,        // Approve PO
-    FaStore,         // At Store
-    FaTruckLoading,  // On Site
-    FaTools,         // OEM Spare
-    FaChartLine,     // Live
-    FaRegLightbulb   // Item Requests
+    FaClipboardList,
+    FaFileUpload,
+    FaSearch,
+    FaStore,
+    FaTruckLoading,
+    FaTools,
+    FaChartLine,
+    FaRegLightbulb
 } from 'react-icons/fa';
-import { DraftOrders } from '../utils/icons'; // My Activities icon
+
+import { DraftOrders } from '../utils/icons';
 import NoDataAvailable from '../utils/NoDataUi';
 import CardTable from './cardTable';
 import { useCurrentRender } from '../context/renderContext';
+import { ContentLoading } from '../globalLoading';
+import api from '../api/apiCall';
+import { Bell } from 'lucide-react';
 
-// --- Static Data Definitions (from your request) ---
+// ----------------- Static Mappings -----------------
 const phases = {
     0: "My Activities",
     1: "Item Requests",
@@ -25,7 +29,7 @@ const phases = {
     4: "Approve PO",
     7: "At Store",
     8: "At Store",
-    9: "On Site",//"OEM Spare",
+    9: "On Site",
     10: "On Site",
     11: "On Site",
     12: "OEM Spare",
@@ -49,152 +53,241 @@ const information = {
     15: "Items that are live in the inventory",
 };
 
-// --- Helper Function to Map Phase to an Icon ---
 const getIconComponent = (phase) => {
     switch (phase) {
-        case "My Activities":
-            return DraftOrders;
-        case "PO Re-Fills":
-            return FaClipboardList;
-        case "Upload PDF":
-            return FaFileUpload;
-        case "Approve PO":
-            return FaSearch;
-        case "At Store":
-            return FaStore;
-        case "On Site":
-            return FaTruckLoading;
-        case "OEM Spare":
-            return FaTools;
-        case "Item Requests":
-            return FaRegLightbulb;
-        case "Live":
-            return FaChartLine;
-        default:
-            return FaClipboardList;
+        case "My Activities": return DraftOrders;
+        case "PO Re-Fills": return FaClipboardList;
+        case "Upload PDF": return FaFileUpload;
+        case "Approve PO": return FaSearch;
+        case "At Store": return FaStore;
+        case "On Site": return FaTruckLoading;
+        case "OEM Spare": return FaTools;
+        case "Item Requests": return FaRegLightbulb;
+        case "Live": return FaChartLine;
+        default: return FaClipboardList;
     }
 };
 
-// --- 2. DashboardCard Component (The Visual Unit) ---
-const DashboardCard = ({ title, subtitle, count, icon: IconComponent, cardClick }) => {
+// ----------------- Card Component -----------------
+const DashboardCard = ({ title, subtitle, count, unreadCount, icon: IconComponent, cardClick }) => {
     const isActive = count > 0;
-    const cardClass = isActive
-        ? 'bg-white shadow-xl border-t-4 border-indigo-600 cursor-pointer'
-        : 'bg-white shadow-md border-t-4 border-gray-200';
-    const countClass = isActive ? 'text-indigo-600' : 'text-gray-500';
-    const iconWrapperClass = isActive ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-400';
 
     return (
-        <div onClick={cardClick} className={`p-6 rounded-lg transition-all duration-300 hover:shadow-2xl hover:scale-[1.01] ${cardClass}`}>
+        <div
+            onClick={cardClick}
+            /* Structure remains original; added dark: specific refinements */
+            className={`p-6 rounded-lg transition-all duration-300 hover:shadow-2xl dark:hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:scale-[1.01] ${isActive
+                ? 'bg-white dark:bg-slate-800/50 dark:backdrop-blur-sm dark:ring-1 dark:ring-indigo-500/30 shadow-xl dark:shadow-[0_0_30px_rgba(99,102,241,0.1)] border-t-4 border-indigo-600 cursor-pointer'
+                : 'bg-white dark:bg-slate-800/30 shadow-md dark:shadow-[0_0_30px_rgba(99,102,241,0.1)] border-t-4 border-gray-200 dark:border-slate-700/50'
+                }`}
+        >
             <div className="flex items-center justify-between">
                 <div>
-                    <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                    <h3 className="text-sm font-medium text-gray-500 dark:text-indigo-300/60 uppercase tracking-wider">
                         {title}
                     </h3>
-                    {/* The Count - Big and Bold */}
-                    <p className={`text-4xl font-extrabold mt-1 ${countClass}`}>
+                    <p className={`text-4xl font-extrabold mt-1 ${isActive
+                        ? 'text-indigo-600 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-br dark:from-white dark:to-indigo-300'
+                        : 'text-gray-500 dark:text-slate-600'}`}>
                         {count}
                     </p>
                 </div>
-                {/* The Icon */}
-                <span className={`p-3 rounded-full ${iconWrapperClass}`}>
+
+                <span className={`p-3 rounded-full ${isActive
+                    ? 'bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400'
+                    : 'bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-700'}`}>
                     <IconComponent size={24} />
                 </span>
             </div>
-
-            {/* Detailed Description */}
-            <p className="mt-4 text-xs text-gray-500 border-t pt-3">
-                {subtitle}
-            </p>
+            <div className="flex items-center justify-between mt-4 border-t border-slate-200 dark:border-slate-700/50 pt-3">
+                <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">
+                    {subtitle}
+                </p>
+                {unreadCount > 0 && <Bell size={20} className="text-amber-500 animate-bell" />}
+            </div>
         </div>
     );
 };
 
+// ----------------- Main Dashboard -----------------
+const Dashboard = () => {
+    const { handleSetCurrentRender } = useCurrentRender();
+    const queryClient = useQueryClient();
+    const [refresh, setRefresh] = React.useState(false);
 
-// --- 3. Dashboard Component (The Container) ---
-const Dashboard = ({ apiData, loading, refresh }) => {
-    const navigate = useNavigate();
+    // Normalized states: { [status_id]: value }
+    const [counts, setCounts] = React.useState({});
+    const [unreadCounts, setUnreadCounts] = React.useState({});
+    const [loading, setLoading] = React.useState(true);
+
     const [currentView, setCurrentView] = React.useState('dashboard');
     const [selectedPhaseIds, setSelectedPhaseIds] = React.useState(null);
-    const { handleSetCurrentRender } = useCurrentRender();
+
+    // ----------------- WebSocket Connection -----------------
+    React.useEffect(() => {
+        let ws = null;
+        let shouldReconnect = true;
+        let reconnectTimeout = null;
+
+        const connect = async () => {
+            const token = sessionStorage.getItem("auth_token");
+
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            ws = new WebSocket(`${import.meta.env.VITE_API_WS_URL}/ws/dashboard`, ['access-token', token]);
+
+            ws.onopen = () => {
+                console.log("✅ WebSocket Connected");
+            };
+
+            ws.onmessage = (e) => {
+                const msg = JSON.parse(e.data);
+
+                if (msg.type === "AUTH_ERROR") {
+                    handleAuthFailure();
+                    return;
+                }
+
+                if (msg.type === "DASHBOARD_DATA") {
+                    const newCounts = {};
+                    const newUnreads = {};
+                    msg.dashboard.forEach(item => {
+                        newCounts[item.status_id] = item.total_count;
+                        newUnreads[item.status_id] = item.unread_count;
+                    });
+                    setCounts(newCounts);
+                    setUnreadCounts(newUnreads);
+                    setLoading(false);
+                }
+                if (msg.type === "DASHBOARD_UPDATE_DATA") {
+                    const countUpdate = {};
+                    const unreadUpdate = {};
+                    msg.dashboard.forEach(item => {
+                        countUpdate[item.status_id] = item.total_count;
+                        unreadUpdate[item.status_id] = item.unread_count;
+                    });
+                    setCounts(countUpdate);
+                    setUnreadCounts(unreadUpdate);
+                    setLoading(false);
+
+                    // Real-time Cache Invalidation
+                    queryClient.invalidateQueries();
+                    console.log("🔄 Global Cache Invalidated via WebSocket");
+                }
+            };
+
+            ws.onclose = (event) => {
+                if (shouldReconnect) {
+                    if (event.code === 1008 || event.code === 3000) {
+                        handleAuthFailure();
+                    } else {
+                        reconnectTimeout = setTimeout(connect, 3000);
+                    }
+                }
+            };
+
+            ws.onerror = (err) => {
+                console.error("WebSocket Error:", err);
+            };
+        };
+
+        const handleAuthFailure = async () => {
+            console.warn("⚠️ Auth failure detected. Refreshing...");
+            if (ws) ws.close();
+
+            try {
+                await api.get('/api/auth/ping');
+                console.log("🔄 Token refreshed. Reconnecting...");
+                if (shouldReconnect) connect();
+            } catch (err) {
+                console.error("❌ Refresh Token expired. Redirecting to login.");
+            }
+            finally {
+                setLoading(false);
+            }
+        };
+
+        connect();
+
+        return () => {
+            shouldReconnect = false;
+            if (ws) ws.close();
+            if (reconnectTimeout) clearTimeout(reconnectTimeout);
+        };
+    }, [queryClient]);
 
     if (loading) {
+        return <ContentLoading />;
+    }
+
+    if (!counts || Object.keys(counts).length === 0) {
         return (
-            <div className="flex items-center justify-center h-48 bg-gray-50 p-6">
-                <p className="text-xl text-indigo-500 animate-pulse">
-                    Loading dashboard...
-                </p>
-            </div>
+            <NoDataAvailable
+                title="No Dashboard Data"
+                explanation="Unable to retrieve data from the server. Please check your connection."
+            />
         );
     }
 
-    if ((!apiData || !apiData.success || !apiData.dashboard || Object.keys(apiData.dashboard).length === 0) && !loading) {
-        return (<NoDataAvailable />);
-    }
-
-
-    // --- Data Processing Logic ---
-    const rawData = apiData.dashboard;
-
-    // Create a Set to handle duplicate phase names (e.g., keys 3 and 4 are both "Approve PO")
     const aggregatedData = {};
 
-    Object.entries(rawData).forEach(([key, count]) => {
-        const index = parseInt(key);
-        const title = phases[index];
-        const subtitle = information[index];
+    Object.entries(counts).forEach(([id, count]) => {
+        const statusId = parseInt(id);
+        const title = phases[statusId];
+        const subtitle = information[statusId];
+        const unread = unreadCounts[statusId] || 0;
 
-        if (title !== undefined && subtitle !== undefined) {
-            // Aggregate counts for items with the same phase name but different keys
-            if (aggregatedData[title]) {
-                aggregatedData[title].count += count;
-            } else {
-                aggregatedData[title] = {
-                    title,
-                    subtitle,
-                    count,
-                    icon: getIconComponent(title),
-                    phaseIds: [key], // Store original keys for potential use
-                };
-            }
+        if (!title) return;
+
+        if (aggregatedData[title]) {
+            aggregatedData[title].count += count;
+            aggregatedData[title].unreadTotal += unread;
+            aggregatedData[title].phaseIds.push(statusId);
+        } else {
+            aggregatedData[title] = {
+                title,
+                subtitle,
+                count,
+                unreadTotal: unread,
+                icon: getIconComponent(title),
+                phaseIds: [statusId],
+            };
         }
     });
 
-    // Convert aggregated object back to a sorted array (highest count first)
     const dashboardItems = Object.values(aggregatedData)
         .sort((a, b) => b.count - a.count);
 
-    const handleCardClick = (itemTitle, itemCount, phaseId) => {
+    const handleCardClick = async (itemTitle, itemCount, phaseIds) => {
         if (itemCount > 0) {
-            //navigate('/showData', { state: { phaseId, } });
-            setSelectedPhaseIds(phaseId);
+            setSelectedPhaseIds(phaseIds);
             setCurrentView('table');
-        } else {
-            console.log(`${itemTitle} has a count of 0. No action taken.`);
         }
     };
 
     const handleBackToDashboard = () => {
-        refresh();
+        setRefresh(!refresh);
         handleSetCurrentRender('Dashboard');
         setCurrentView('dashboard');
         setSelectedPhaseIds(null);
     };
 
     if (currentView === 'table' && selectedPhaseIds) {
-        return <CardTable 
-            phaseIds={selectedPhaseIds} 
-            onBackToDashboard={handleBackToDashboard} 
-        />;
+        return (
+            <CardTable
+                phaseIds={selectedPhaseIds}
+                onBackToDashboard={handleBackToDashboard}
+            />
+        );
     }
 
-
-    // --- Rendering ---
     return (
-        <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 min-h-[calc(100vh-9.75rem)]">
-
+        <div className="p-4 sm:p-6 lg:p-8 bg-slate-100 dark:bg-slate-900/50 min-h-[calc(100vh-7.25rem)] transition-colors duration-500">
             <header className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800 border-b-2 border-indigo-200 pb-2">
+                <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-100 border-b-2 border-indigo-200 dark:border-slate-800 pb-2">
                     Purchase Order & Inventory Overview
                 </h1>
             </header>
@@ -202,12 +295,15 @@ const Dashboard = ({ apiData, loading, refresh }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {dashboardItems.map((item) => (
                     <DashboardCard
-                        key={item.title} // Use title as key since we aggregated by it
+                        key={item.title}
                         title={item.title}
                         subtitle={item.subtitle}
                         count={item.count}
+                        unreadCount={item.unreadTotal}
                         icon={item.icon}
-                        cardClick={() => handleCardClick(item.title, item.count, item.phaseIds)}
+                        cardClick={() =>
+                            handleCardClick(item.title, item.count, item.phaseIds)
+                        }
                     />
                 ))}
             </div>

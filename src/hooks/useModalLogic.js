@@ -22,11 +22,10 @@ export const useModalLogic = ({ type, modalName, data, isOpen, onAction, onClose
     // --- Data Submission Logic (handleSubmit) ---
     const handleSubmit = useCallback(async (body, operationOverride = type) => {
         setSubmitLoading(true);
-        const requestFor = (VIEW_TYPES.includes(type) || type === 'delete') && modalName;
+        const requestFor = modalName;
         const params = data?.params || null;
         const method = operationOverride;
 
-        // ... (The rest of your handleSubmit logic from MainModal) ...
         const thisMethod = method === 'create' ? 'post' :
             method === 'update' ? 'put' :
                 method === 'upload_pdf' ? 'post' :
@@ -72,13 +71,12 @@ export const useModalLogic = ({ type, modalName, data, isOpen, onAction, onClose
             setSubmitLoading(false);
             onClose();
         }
-    }, [type, modalName, data, isOpen, onAction, onClose, addToast]);
+    }, [type, modalName, data, onAction, onClose, addToast]);
 
     // --- Data Fetching Logic (fetchViewData) ---
     const fetchViewData = useCallback(async ({ resetPage = false, tableOverride = null, paramsOverride = null } = {}) => {
-        // (Your existing fetchViewData logic goes here, using the state setters)
-        const requestFor = tableOverride ?? data?.table ?? modalName ?? null;
-        if (!requestFor || !VIEW_TYPES.includes(type)) return; // Only fetch for view types
+        const requestFor = tableOverride ?? modalName ?? null;
+        if (!requestFor || !VIEW_TYPES.includes(type)) return;
 
         const method = 'get';
         const allParams = paramsOverride ?? data?.params ?? {};
@@ -89,6 +87,16 @@ export const useModalLogic = ({ type, modalName, data, isOpen, onAction, onClose
             if (allParams[key] !== undefined) acc[key] = allParams[key];
             return acc;
         }, { page: pageToRequest, pageSize, search: searchQuery });
+
+        // Ensure identifiers are present even if not in 'params' list of getEndpoint
+        // This is a safety net for views that require specific IDs
+        const identifyingKeys = [
+            'po_id', 'po_line_item_id', 'po_item_details_id',
+            'store_id', 'firm_id', 'item_type_id', 'item_make_id', 'item_model_id', 'item_part_id', 'user_id'
+        ];
+        identifyingKeys.forEach(key => {
+            if (allParams[key] !== undefined) thisParams[key] = allParams[key];
+        });
 
         const endpoint = getEndpoint(requestFor, method, 'url', thisParams);
 
@@ -126,7 +134,7 @@ export const useModalLogic = ({ type, modalName, data, isOpen, onAction, onClose
             setTotal(0);
             setSearchQuery('');
         }
-    }, [isOpen, type, fetchViewData, pageSize, searchQuery, currentPage]);
+    }, [isOpen, type, fetchViewData]);
 
     return {
         modalData,

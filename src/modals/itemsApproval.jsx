@@ -240,7 +240,7 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
             const filename = response?.data?.report_key?.split('/').pop() || 'Inspection_Certificate.pdf';
             if (response.data?.report_url) {
                 downloadPDF(response.data.report_url, filename);
-                window.open(response.data.report_url, '_blank');
+                //window.open(response.data.report_url, '_blank');
             }
 
             // Reset state and refresh item list on success
@@ -276,29 +276,29 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
             isOpen={isOpen}
             onRequestClose={onCancel}
             ariaHideApp={false}
-            className="fixed inset-0 flex items-center justify-center p-4 z-50"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40"
+            className="fixed inset-0 flex items-center justify-center p-4 z-50 outline-none"
+            overlayClassName="modal-overlay"
             contentLabel="Item Inspection"
             shouldCloseOnEsc={true}
             shouldCloseOnOverlayClick={true}
         >
             {/* The main container uses flex-col and max-h-[90vh] to manage scrolling */}
-            <div className="bg-white rounded-lg w-full max-w-7xl relative shadow-2xl flex flex-col max-h-[90vh]">
+            <div className="bg-white dark:bg-slate-900 rounded-lg w-full max-w-7xl relative shadow-2xl flex flex-col max-h-[90vh] border-1 border-gray-200 dark:border-slate-800">
 
                 {/* Fixed Header */}
-                <div className="p-4 flex items-start justify-between rounded-t-lg border-b border-gray-200 bg-white z-20">
+                <div className="p-4 flex items-start justify-between rounded-t-lg border-b border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800">
+                        <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100">
                             {poDetails.po_number} - Item Approval ({thisPhase})
                         </h2>
                         <ReadMore text={poDetails.po_description} />
                         {allPendingItems.length === 0 && (
-                            <p className="text-md text-green-600 font-semibold mt-2">
+                            <p className="text-md text-green-600 dark:text-green-400 font-semibold mt-2">
                                 ✅ All items for this PO have been processed!
                             </p>
                         )}
                     </div>
-                    <button onClick={onCancel} className="text-gray-500 px-3 py-1 rounded-lg hover:text-gray-700 hover:bg-gray-200 text-lg" aria-label='Close'>
+                    <button onClick={onCancel} className="text-gray-500 dark:text-slate-400 px-3 py-1 rounded-lg hover:text-gray-700 dark:hover:text-slate-200 hover:bg-gray-200 dark:hover:bg-slate-800 text-lg" aria-label='Close'>
                         &times;
                     </button>
                 </div>
@@ -320,33 +320,33 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
                             const isLineItemAllRejected = rejectedCount === lineItemGroup.items.length && lineItemGroup.items.length > 0;
 
                             return (
-                                <div key={lineItemId} className="border border-gray-200 rounded-lg shadow-sm">
+                                <div key={lineItemId} className="border border-gray-200 dark:border-slate-800 rounded-lg shadow-sm">
                                     {/* Line Item Header with Bulk Action Checkboxes - STICKY INSIDE SCROLLABLE AREA */}
-                                    <div className="bg-gray-50 p-3 flex flex-wrap justify-between items-center border-b border-gray-200 sticky top-0 z-10 rounded-t-lg">
-                                        <h3 className="text-lg font-semibold text-gray-800 break-words w-full sm:w-auto">
+                                    <div className="bg-gray-50 dark:bg-slate-800/50 p-3 flex flex-wrap justify-between items-center border-b border-gray-200 dark:border-slate-700 sticky top-0 z-10 rounded-t-lg">
+                                        <h3 className="text-lg font-semibold text-gray-800 dark:text-slate-100 break-words w-full sm:w-auto">
                                             {lineItemGroup.line_item_name}
-                                            <span className="text-sm font-normal text-gray-500 ml-2">({lineItemGroup.items.length} Pending)</span>
+                                            <span className="text-sm font-normal text-gray-500 dark:text-slate-400 ml-2">({lineItemGroup.items.length} Pending)</span>
                                         </h3>
                                         <div className="flex flex-col sm:flex-row gap-4 mt-2 sm:mt-0 w-full sm:w-auto">
                                             {/* Approve All Checkbox */}
-                                            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-green-600 font-medium">
+                                            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-green-600 dark:text-green-400 font-medium">
                                                 <input
                                                     type="checkbox"
                                                     checked={isLineItemAllApproved}
                                                     onChange={e => toggleLineItemApproval(lineItemId, lineItemGroup.items, e.target.checked)}
-                                                    className="w-4 h-4 accent-green-600 rounded"
-                                                    //disabled={lineItemGroup.items.length === 0 || isLineItemAllRejected}
+                                                    className="w-4 h-4 accent-green-600 dark:accent-green-500 rounded"
+                                                //disabled={lineItemGroup.items.length === 0 || isLineItemAllRejected}
                                                 />
                                                 Approve All
                                             </label>
                                             {/* Reject All Checkbox */}
-                                            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-red-600 font-medium">
+                                            <label className="inline-flex items-center gap-2 cursor-pointer text-sm text-red-600 dark:text-red-400 font-medium">
                                                 <input
                                                     type="checkbox"
                                                     checked={isLineItemAllRejected}
                                                     onChange={e => toggleLineItemRejection(lineItemId, lineItemGroup.items, e.target.checked)}
-                                                    className="w-4 h-4 accent-red-600 rounded"
-                                                    //disabled={lineItemGroup.items.length === 0 || isLineItemAllApproved}
+                                                    className="w-4 h-4 accent-red-600 dark:accent-red-500 rounded"
+                                                //disabled={lineItemGroup.items.length === 0 || isLineItemAllApproved}
                                                 />
                                                 Reject All
                                             </label>
@@ -355,72 +355,72 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
 
                                     {/* Items Table for this Line Item */}
                                     <div className="overflow-x-auto">
-                                        <table className="min-w-full divide-y divide-gray-200">
-                                            <thead className="bg-gray-100 hidden lg:table-header-group">
+                                        <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800">
+                                            <thead className="bg-gray-100 dark:bg-slate-800/80 hidden lg:table-header-group">
                                                 <tr>
-                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[5%]">#</th>
-                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">Item Type / Make / Model</th>
+                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider w-[5%]">#</th>
+                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider w-[20%]">Item Type / Make / Model</th>
                                                     {/* ADDED HEADER */}
-                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[15%]">Project No.</th>
-                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[40%]">Serial Number / Location</th>
-                                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-green-600 uppercase tracking-wider w-[7.5%]">Approve</th>
-                                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-red-600 uppercase tracking-wider w-[7.5%]">Reject</th>
+                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider w-[15%]">Project No.</th>
+                                                    <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider w-[40%]">Serial Number / Location</th>
+                                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wider w-[7.5%]">Approve</th>
+                                                    <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wider w-[7.5%]">Reject</th>
                                                 </tr>
                                             </thead>
-                                            <tbody className="bg-white divide-y divide-gray-200">
+                                            <tbody className="bg-white dark:bg-slate-900 divide-y divide-gray-200 dark:divide-slate-800">
                                                 {lineItemGroup.items.map((item, index) => {
                                                     const isApproved = inspectedItems.approve.includes(item.po_item_details_id);
                                                     const isRejected = inspectedItems.reject.includes(item.po_item_details_id);
 
                                                     return (
-                                                        <tr key={item.po_item_details_id} className="hover:bg-yellow-50/50 transition-colors lg:table-row flex flex-col lg:flex-row border-b lg:border-none">
-                                                            <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 lg:table-cell hidden lg:w-[5%]">
+                                                        <tr key={item.po_item_details_id} className="hover:bg-yellow-50/50 dark:hover:bg-slate-800/50 transition-colors lg:table-row flex flex-col lg:flex-row border-b lg:border-none dark:border-slate-800">
+                                                            <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100 lg:table-cell hidden lg:w-[5%]">
                                                                 {index + 1}
                                                             </td>
 
                                                             {/* Item Details (Responsive) */}
-                                                            <td className="px-3 py-2 text-sm text-gray-900 lg:w-[20%]">
-                                                                <div className="font-semibold text-gray-800 flex items-center">
-                                                                    <span className="lg:hidden text-xs text-gray-500 mr-2">{index + 1}.</span>
+                                                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-slate-100 lg:w-[20%]">
+                                                                <div className="font-semibold text-gray-800 dark:text-slate-200 flex items-center">
+                                                                    <span className="lg:hidden text-xs text-gray-500 dark:text-slate-400 mr-2">{index + 1}.</span>
                                                                     {item.item_name}
                                                                 </div>
-                                                                <div className="text-xs text-gray-500">Make: {item.item_make_name} / Model: {item.item_model_name}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-slate-400">Make: {item.item_make_name} / Model: {item.item_model_name}</div>
                                                             </td>
 
                                                             {/* *** ADDED: Project Number Cell *** */}
-                                                            <td className="px-3 py-2 text-sm text-gray-900 lg:w-[15%]">
-                                                                <div className="font-semibold text-gray-700">
-                                                                    <span className="lg:hidden text-xs font-medium text-gray-500 mr-1">Project:</span>
+                                                            <td className="px-3 py-2 text-sm text-gray-900 dark:text-slate-100 lg:w-[15%]">
+                                                                <div className="font-semibold text-gray-700 dark:text-slate-300">
+                                                                    <span className="lg:hidden text-xs font-medium text-gray-500 dark:text-slate-400 mr-1">Project:</span>
                                                                     {item.project_number}
                                                                 </div>
                                                             </td>
 
                                                             {/* S/N & Location (Responsive) */}
-                                                            <td className="px-3 py-2 text-sm text-gray-500 lg:w-[40%]">
-                                                                <div className="font-mono text-xs text-gray-700">S/N: {item.item_serial_number || 'N/A'}</div>
-                                                                <div className="text-xs text-gray-500">Loc: {item.item_location}</div>
+                                                            <td className="px-3 py-2 text-sm text-gray-500 dark:text-slate-400 lg:w-[40%]">
+                                                                <div className="font-mono text-xs text-gray-700 dark:text-slate-300">S/N: {item.item_serial_number || 'N/A'}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-slate-400">Loc: {item.item_location}</div>
                                                             </td>
 
                                                             {/* Action Checkboxes (Responsive) */}
-                                                            <td className="px-3 py-2 whitespace-nowrap text-center flex justify-between items-center lg:table-cell lg:w-[7.5%] border-t lg:border-none">
-                                                                <span className="lg:hidden text-sm font-medium text-green-600">Approve:</span>
+                                                            <td className="px-3 py-2 whitespace-nowrap text-center flex justify-between items-center lg:table-cell lg:w-[7.5%] border-t lg:border-none dark:border-slate-800">
+                                                                <span className="lg:hidden text-sm font-medium text-green-600 dark:text-green-400">Approve:</span>
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isApproved}
                                                                     onChange={() => toggleItemApproval(item, 'approve')}
-                                                                    className="w-5 h-5 accent-green-600 cursor-pointer"
-                                                                    //disabled={isRejected}
+                                                                    className="w-5 h-5 accent-green-600 dark:accent-green-500 cursor-pointer"
+                                                                //disabled={isRejected}
                                                                 />
                                                             </td>
 
-                                                            <td className="px-3 py-2 whitespace-nowrap text-center flex justify-between items-center lg:table-cell lg:w-[7.5%] border-t lg:border-none">
-                                                                <span className="lg:hidden text-sm font-medium text-red-600">Reject:</span>
+                                                            <td className="px-3 py-2 whitespace-nowrap text-center flex justify-between items-center lg:table-cell lg:w-[7.5%] border-t lg:border-none dark:border-slate-800">
+                                                                <span className="lg:hidden text-sm font-medium text-red-600 dark:text-red-400">Reject:</span>
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isRejected}
                                                                     onChange={() => toggleItemApproval(item, 'reject')}
-                                                                    className="w-5 h-5 accent-red-600 cursor-pointer"
-                                                                    //disabled={isApproved}
+                                                                    className="w-5 h-5 accent-red-600 dark:accent-red-500 cursor-pointer"
+                                                                //disabled={isApproved}
                                                                 />
                                                             </td>
                                                         </tr>
@@ -434,12 +434,12 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
                         })
                     ) : (
                         // No pending items message
-                        <div className="text-center p-12 text-gray-500">
-                            <svg className="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="text-center p-12 text-gray-500 dark:text-slate-400">
+                            <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">No Pending Items</h3>
-                            <p className="mt-1 text-sm text-gray-500">
+                            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-slate-100">No Pending Items</h3>
+                            <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
                                 All items in this PO for the **{thisPhase}** phase have been actioned.
                             </p>
                         </div>
@@ -448,11 +448,11 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
 
                 {/* Fixed Footer (Remarks and Actions) */}
                 {allPendingItems.length > 0 && (
-                    <div className="p-4 border-t border-gray-200 bg-white z-20 flex flex-col md:flex-row gap-4">
+                    <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20 flex flex-col md:flex-row gap-4 rounded-b-lg">
                         {/* Remarks Section */}
                         <div className="flex-1">
-                            <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 mb-1">
-                                Remarks <span className={`text-red-500 ${inspectedItems.reject.length > 0 ? 'font-bold' : 'hidden'}`}>* Required for Rejection</span>
+                            <label htmlFor="remarks" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">
+                                Remarks <span className={`text-red-500 dark:text-red-400 ${inspectedItems.reject.length > 0 ? 'font-bold' : 'hidden'}`}>* Required for Rejection</span>
                             </label>
                             <textarea
                                 id="remarks"
@@ -460,7 +460,7 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
                                 value={inspectedItems.remarks}
                                 onChange={handleRemarksChange}
                                 placeholder="Enter inspection remarks here (required for rejected items)..."
-                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-shadow text-sm"
+                                className="w-full p-2 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-shadow text-sm"
                             />
                         </div>
 
@@ -468,7 +468,7 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
                         <div className="flex flex-col sm:flex-row gap-3 md:items-end mt-4 md:mt-0">
                             <button
                                 onClick={onCancel}
-                                className="w-full sm:w-auto px-6 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                                className="w-full sm:w-auto px-6 py-2 border border-gray-300 dark:border-slate-700 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                                 disabled={loading}
                             >
                                 Cancel
@@ -477,7 +477,7 @@ export const ItemsAcceptance = ({ isOpen, onCancel, po_id, onSubmit, phase }) =>
                                 onClick={() => handleAction(inspectedItems)}
                                 disabled={loading || !hasAnySelection}
                                 className={`w-full sm:w-auto px-6 py-2 rounded-md shadow-lg text-sm font-semibold text-white transition-all duration-200 
-                                    ${hasAnySelection ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-400 cursor-not-allowed'}`}
+                                    ${hasAnySelection ? 'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600' : 'bg-gray-400 dark:bg-slate-700 cursor-not-allowed'}`}
                             >
                                 {loading ? 'Processing...' : `Submit Action (${inspectedItems.approve.length + inspectedItems.reject.length})`}
                             </button>

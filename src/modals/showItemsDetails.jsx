@@ -1,6 +1,6 @@
 import React from "react";
 import ReactModal from "react-modal";
-import api from "../api/apiCall"; 
+import api from "../api/apiCall";
 import { CheckSquare, Clock, FileText, MapPin, Package, Settings, User } from "lucide-react";
 
 /**
@@ -37,7 +37,7 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
         setError(null);
         api.get(`/api/tracking/serial/${serialNumber}`)
             .then((res) => {
-                setData(res.data.data); 
+                setData(res.data.data);
             })
             .catch((err) => {
                 console.error("API Fetch Error:", err);
@@ -71,24 +71,25 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
             bottom: 'auto',
             marginRight: '-50%',
             transform: 'translate(-50%, -50%)',
-            width: '90%', 
-            maxWidth: '1200px', 
-            maxHeight: '90vh', 
-            padding: '0', 
+            width: '90%',
+            maxWidth: '1200px',
+            maxHeight: '90vh',
+            padding: '0',
             border: 'none',
             borderRadius: '0.5rem',
-            overflow: 'hidden', 
+            overflow: 'hidden',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
         },
         overlay: {
             backgroundColor: 'rgba(0, 0, 0, 0.75)',
             zIndex: 1000,
+            backdropFilter: 'blur(4px)',
         }
     };
 
     const poData = data?.po_data || {};
     const poLine = data?.po_line || {};
-    const poItem = data?.po_item || {}; 
+    const poItem = data?.po_item || {};
     const activities = data?.activities || [];
     const latestActivity = activities.length > 0 ? activities[activities.length - 1] : {};
 
@@ -99,16 +100,16 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
             style={customStyles}
             contentLabel={`Details for Serial Number: ${poItem.item_serial_number}`}
         >
-            <div className="flex flex-col h-[90vh]"> 
-                
+            <div className="flex flex-col h-[90vh] bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 transition-colors">
+
                 {/* Header - Fixed height */}
-                <div className="flex justify-between items-center p-6 bg-gray-50 border-b border-gray-200 shrink-0">
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Item Details: <span className="text-indigo-600">{poItem.item_serial_number}</span>
+                <div className="flex justify-between items-center p-6 bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 shrink-0 shadow-sm relative z-10">
+                    <h1 className="text-2xl font-bold text-gray-800 dark:text-slate-100">
+                        Item Details: <span className="text-indigo-600 dark:text-indigo-400">{poItem.item_serial_number}</span>
                     </h1>
-                    <button 
-                        onClick={closeModal} 
-                        className="text-gray-400 hover:text-gray-600 transition duration-150"
+                    <button
+                        onClick={closeModal}
+                        className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition duration-150 p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full"
                         aria-label="Close Modal"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -125,7 +126,7 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
                     )}
 
                     {error && !loading && (
-                        <div className="text-center p-10 bg-red-50 border border-red-200 rounded-lg text-red-600">
+                        <div className="text-center p-10 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-900/30 rounded-lg text-red-600 dark:text-red-400">
                             <h2 className="text-xl font-semibold mb-2">Error Loading Data</h2>
                             <p>Could not fetch details for serial number {serialNumber}. Please try again.</p>
                         </div>
@@ -133,27 +134,27 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
 
                     {!loading && !error && data && (
                         <div className="space-y-6">
-                            
+
                             {/* ROW 1: Current Status Summary (Full Width) */}
-                            <div className="bg-white shadow-xl rounded-xl p-6 border border-indigo-100">
-                                <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                                    <span className="text-indigo-600 mr-2">
+                            <div className="bg-white dark:bg-slate-800/50 shadow-xl rounded-xl p-6 border border-indigo-100 dark:border-slate-800">
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-slate-100 mb-4 flex items-center">
+                                    <span className="text-indigo-600 dark:text-indigo-400 mr-2">
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.001 12.001 0 002.944 12c.005 3.003 1.096 5.86 3.04 8.618A12.001 12.001 0 0012 21.056c3.003-.005 5.86-1.096 8.618-3.04A12.001 12.001 0 0021.056 12a12.001 12.001 0 00-3.04-8.618z"></path></svg>
                                     </span>
                                     Current Tracking Status
                                 </h2>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <InfoBox title="Current Status" value={latestActivity.item_status || 'N/A'} icon={latestActivity.item_status && <CheckSquare className="w-4 h-4"/>} color="text-green-600" />
-                                    <InfoBox title="Current Owner" value={latestActivity.receiver_user_name || 'N/A'} icon={latestActivity.receiver_user_name && <User className="w-4 h-4"/>} color="text-yellow-600" />
-                                    <InfoBox title="Location" value={latestActivity.item_location || 'N/A'} icon={latestActivity.item_location && <MapPin className="w-4 h-4"/>} color="text-blue-600" />
+                                    <InfoBox title="Current Status" value={latestActivity.item_status || 'N/A'} icon={latestActivity.item_status && <CheckSquare className="w-4 h-4" />} color="text-green-600 dark:text-green-400" />
+                                    <InfoBox title="Current Owner" value={latestActivity.receiver_user_name || 'N/A'} icon={latestActivity.receiver_user_name && <User className="w-4 h-4" />} color="text-yellow-600 dark:text-yellow-400" />
+                                    <InfoBox title="Location" value={latestActivity.item_location || 'N/A'} icon={latestActivity.item_location && <MapPin className="w-4 h-4" />} color="text-blue-600 dark:text-blue-400" />
                                 </div>
                             </div>
-                            
+
                             {/* ROW 2: Item Definition Details (2 Columns) */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Item Specification Details (NEW PO_ITEM) */}
                                 {console.log('PO Item Data:', poItem)}
-                                <DetailCard title="Item Specification Details" icon={<Settings className="w-5 h-5" />} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+                                <DetailCard title="Item Specification Details" icon={<Settings className="w-5 h-5" />} className="bg-white dark:bg-slate-800/50 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-slate-800">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                                         <DetailItem label="Item Type" value={poItem.item_type_name} />
                                         <DetailItem label="Manufacturer (Make)" value={poItem.item_make_name} />
@@ -166,7 +167,7 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
                                 </DetailCard>
 
                                 {/* PO Line Item Details */}
-                                <DetailCard title="PO Line Item Details" icon={<Package className="w-5 h-5" />} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200">
+                                <DetailCard title="PO Line Item Details" icon={<Package className="w-5 h-5" />} className="bg-white dark:bg-slate-800/50 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-slate-800">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                                         <DetailItem label="Line Number" value={poLine.line_number} />
                                         <DetailItem label="Line Name" value={poLine.line_name} />
@@ -179,10 +180,10 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
 
                             {/* ROW 3: Contextual Details (PO & Tracking Timeline) */}
                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                                
+
                                 {/* Purchase Order Details (2/3 Width) */}
                                 <div className="lg:col-span-2">
-                                    <DetailCard title="Purchase Order Details" icon={<FileText className="w-5 h-5" />} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 h-full">
+                                    <DetailCard title="Purchase Order Details" icon={<FileText className="w-5 h-5" />} className="bg-white dark:bg-slate-800/50 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-slate-800 h-full">
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-4">
                                             <DetailItem label="PO Number" value={poData.po_number} />
                                             <DetailItem label="Issue Date" value={formatDate(poData.po_date_of_issue)} />
@@ -192,11 +193,11 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
                                         <DetailItem label="PO Description" value={poData.po_description} isDescription={true} className="mt-4" />
                                     </DetailCard>
                                 </div>
-                                
+
                                 {/* Tracking History (1/3 Width) */}
                                 <div className="lg:col-span-1">
                                     {/* Scroll fix retained: max-h-[70vh] and overflow-y-auto */}
-                                    <DetailCard title="Tracking History" icon={<Clock className="w-5 h-5" />} className="bg-white shadow-lg rounded-xl p-6 border border-gray-200 max-h-[70vh] overflow-y-auto">
+                                    <DetailCard title="Tracking History" icon={<Clock className="w-5 h-5" />} className="bg-white dark:bg-slate-800/50 shadow-lg rounded-xl p-6 border border-gray-200 dark:border-slate-800 max-h-[70vh] overflow-y-auto font-medium">
                                         <TrackingTimeline activities={activities} />
                                     </DetailCard>
                                 </div>
@@ -214,9 +215,9 @@ export const ShowItemsDetails = ({ serialNumber, closeModal }) => {
 // --- Sub-Components (Unchanged) ---
 
 const InfoBox = ({ title, value, color, icon }) => (
-    <div className="p-4 bg-gray-100 rounded-lg flex items-center justify-between">
+    <div className="p-4 bg-gray-100 dark:bg-slate-800 rounded-lg flex items-center justify-between border dark:border-slate-700">
         <div>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{title}</p>
             <p className={`text-lg font-bold ${color}`}>{value}</p>
         </div>
         {icon && <span className={`${color}`}>{icon}</span>}
@@ -225,9 +226,9 @@ const InfoBox = ({ title, value, color, icon }) => (
 
 const DetailCard = ({ title, icon, children, className = "" }) => (
     <div className={className}>
-        <h3 className="text-lg font-semibold text-gray-700 border-b pb-2 mb-4 flex items-center">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-slate-200 border-b dark:border-slate-700 pb-2 mb-4 flex items-center">
             {/* Render the icon here using flex utility classes */}
-            {icon && <span className="text-indigo-600 mr-2">{icon}</span>}
+            {icon && <span className="text-indigo-600 dark:text-indigo-400 mr-2">{icon}</span>}
             {title}
         </h3>
         {children}
@@ -236,8 +237,8 @@ const DetailCard = ({ title, icon, children, className = "" }) => (
 
 const DetailItem = ({ label, value, isDescription = false, className = '' }) => (
     <div className={`mb-3 ${isDescription ? 'col-span-full' : ''} ${className}`}>
-        <p className="text-sm font-medium text-gray-500">{label}</p>
-        <p className="text-base font-semibold text-gray-900 break-words">{value}</p>
+        <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{label}</p>
+        <p className="text-base font-bold text-gray-900 dark:text-slate-100 break-words">{value}</p>
     </div>
 );
 
@@ -250,24 +251,24 @@ const TrackingTimeline = ({ activities }) => {
     }
 
     return (
-        <div className="relative border-l-2 border-indigo-200 pl-4">
+        <div className="relative border-l-2 border-indigo-200 dark:border-slate-700 pl-4 py-2">
             {sortedActivities.map((activity, index) => (
-                <div key={activity.tracking_id} className="mb-8 relative">
+                <div key={activity.tracking_id} className="mb-8 relative last:mb-0">
                     {/* Timeline Dot */}
-                    <div className="absolute -left-5 top-0 w-4 h-4 bg-indigo-600 rounded-full border-4 border-white"></div>
-                    
+                    <div className="absolute -left-[1.35rem] top-1.5 w-4 h-4 bg-indigo-600 dark:bg-indigo-500 rounded-full border-2 border-white dark:border-slate-900 z-10 shadow-sm"></div>
+
                     {/* Content */}
-                    <div className="bg-white p-4 rounded-lg shadow-md transition duration-300 hover:shadow-lg">
-                        <p className="text-sm font-semibold text-indigo-600 mb-1">{activity.item_status}</p>
-                        <p className="text-xs text-gray-500 mb-2">
-                            <span className="font-medium text-gray-700">{activity.phase}</span>
+                    <div className="bg-white dark:bg-slate-900/80 p-4 rounded-lg shadow-md transition duration-300 hover:shadow-lg border dark:border-slate-800">
+                        <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400 mb-1">{activity.item_status}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-2 font-medium">
+                            <span className="font-bold text-gray-700 dark:text-slate-300">{activity.phase}</span>
                             {" "} - {formatDate(activity.created_at)}
                         </p>
-                        <div className="text-xs text-gray-600 space-y-1">
-                            <p><strong>From:</strong> {activity.sender_user_name}</p>
-                            <p><strong>To:</strong> {activity.receiver_user_name}</p>
-                            <p><strong>Location:</strong> {activity.item_location}</p>
-                            {activity.remarks && <p><strong>Remarks:</strong> {activity.remarks}</p>}
+                        <div className="text-xs text-gray-600 dark:text-slate-400 space-y-1">
+                            <p><strong className="text-gray-900 dark:text-slate-200">From:</strong> {activity.sender_user_name}</p>
+                            <p><strong className="text-gray-900 dark:text-slate-200">To:</strong> {activity.receiver_user_name}</p>
+                            <p><strong className="text-gray-900 dark:text-slate-200">Location:</strong> {activity.item_location}</p>
+                            {activity.remarks && <p><strong className="text-gray-900 dark:text-slate-200">Remarks:</strong> {activity.remarks}</p>}
                         </div>
                     </div>
                 </div>

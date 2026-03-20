@@ -144,34 +144,34 @@ const LineItemCard = ({
     };
 
     return (
-        <div className="bg-white rounded-xl shadow-2xl overflow-hidden mb-6 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden mb-6 transition-all duration-300 border border-gray-200 dark:border-slate-800">
             {/* Header / Collapse Trigger */}
             <div
-                className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-50 transition duration-200 border-b border-gray-200"
+                className="p-4 cursor-pointer flex justify-between items-center hover:bg-gray-50 dark:hover:bg-slate-800/50 transition duration-200 border-b border-gray-200 dark:border-slate-800"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center space-x-4">
-                    <Package className="w-6 h-6 text-blue-600" />
+                    <Package className="w-6 h-6 text-blue-600 dark:text-blue-500" />
                     <div>
-                        <h2 className="text-xl font-extrabold text-gray-800">
+                        <h2 className="text-xl font-extrabold text-gray-800 dark:text-slate-100">
                             {lineItem.line_number}: {lineItem.line_item_name}
                         </h2>
-                        <p className="text-sm text-gray-500">
-                            Status: <span className={`font-semibold ${lineItem.po_line_item_status === 'In process' ? 'text-yellow-600' : 'text-green-600'}`}>{lineItem.po_line_item_status}</span>
+                        <p className="text-sm text-gray-500 dark:text-slate-400">
+                            Status: <span className={`font-semibold ${lineItem.po_line_item_status === 'In process' ? 'text-yellow-600 dark:text-yellow-500' : 'text-green-600 dark:text-green-500'}`}>{lineItem.po_line_item_status}</span>
                         </p>
                     </div>
                 </div>
 
                 <div className="flex items-center space-x-6">
                     <div className='hidden sm:block'>
-                        <span className="font-semibold text-green-600">({availableQuantity} out of {lineItem.po_item_details.length}) left   </span>
+                        <span className="font-semibold text-green-600 dark:text-green-500">({availableQuantity} out of {lineItem.po_item_details.length}) left   </span>
                     </div>
-                    <LuSettings className="w-6 h-6 text-gray-500 hover:text-gray-600" onClick={(e) => {
+                    <LuSettings className="w-6 h-6 text-gray-500 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200" onClick={(e) => {
                         e.stopPropagation(); // ⛔ prevent triggering parent expand
                         console.log('Settings Clicked'); // 👉 your own action
                         setOpenFilters(true);
                     }} />
-                    <Icon className="w-6 h-6 text-gray-500" />
+                    <Icon className="w-6 h-6 text-gray-500 dark:text-slate-400" />
                 </div>
             </div>
 
@@ -192,8 +192,8 @@ const LineItemCard = ({
                 {/* Existing Dispatches Section */}
                 <div className="mb-4">
                     <div className="flex justify-between items-center mb-3 mt-1">
-                        <h4 className="text-lg font-semibold text-gray-700 flex items-center">
-                            <Send className="w-5 h-5 mr-2 text-blue-500" /> Current Dispatches
+                        <h4 className="text-lg font-semibold text-gray-700 dark:text-slate-200 flex items-center">
+                            <Send className="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" /> Current Dispatches
                         </h4>
                         {!isAddingNew && availableQuantity > 0 && editingDispatchId === null && (<button
                             onClick={() => setIsAddingNew(true)}
@@ -208,7 +208,7 @@ const LineItemCard = ({
                     </div>
 
                     {dispatches.length === 0 ? (
-                        <p className="text-gray-500 italic p-3 bg-gray-50 rounded-lg border">No dispatch requests added yet.</p>
+                        <p className="text-gray-500 dark:text-slate-400 italic p-3 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-200 dark:border-slate-800 text-sm">No dispatch requests added yet.</p>
                     ) : (
                         <div className="space-y-2">
                             {dispatches.map(dispatch => (
@@ -224,24 +224,24 @@ const LineItemCard = ({
                                             phaseName={phaseName}
                                         />
                                     ) : (
-                                        <div className="flex items-center p-3 bg-white border border-blue-200 rounded-lg shadow-sm">
+                                        <div className="flex items-center p-3 bg-white dark:bg-slate-900 border border-blue-200 dark:border-blue-900/40 rounded-lg shadow-sm">
                                             <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                                                <div className="flex items-center text-blue-800 font-bold"><List className="w-4 h-4 mr-1" /> {dispatch.quantity} Pcs</div>
-                                                <div className="flex items-center text-gray-600"><Package className="w-4 h-4 mr-1" /> {dispatch.phase}</div>
-                                                <div className="flex items-center text-gray-600"><MapPin className="w-4 h-4 mr-1" /> {dispatch.location?.label}</div>
-                                                <div className="flex items-center text-gray-600"><User className="w-4 h-4 mr-1" /> {dispatch.owner?.label}</div>
+                                                <div className="flex items-center text-blue-800 dark:text-blue-400 font-bold"><List className="w-4 h-4 mr-1" /> {dispatch.quantity} Pcs</div>
+                                                <div className="flex items-center text-gray-600 dark:text-slate-400"><Package className="w-4 h-4 mr-1" /> {dispatch.phase}</div>
+                                                <div className="flex items-center text-gray-600 dark:text-slate-400"><MapPin className="w-4 h-4 mr-1" /> {dispatch.location?.label}</div>
+                                                <div className="flex items-center text-gray-600 dark:text-slate-400"><User className="w-4 h-4 mr-1" /> {dispatch.owner?.label}</div>
                                             </div>
                                             <div className="flex space-x-2 ml-4">
                                                 <button
                                                     onClick={() => setEditingDispatchId(dispatch.id)}
-                                                    className="p-1.5 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition"
+                                                    className="p-1.5 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-500 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition"
                                                     title="Edit Dispatch"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteDispatch(dispatch.id)}
-                                                    className="p-1.5 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
+                                                    className="p-1.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-500 hover:bg-red-200 dark:hover:bg-red-900/50 transition"
                                                     title="Delete Dispatch"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -255,8 +255,8 @@ const LineItemCard = ({
                     )}
                 </div>
 
-                <div className="w-full mt-4 pb-4 border-b border-gray-100 flex items-center">
-                    <span className='text-sm text-center text-gray-600 mr-2'>
+                <div className="w-full mt-4 pb-4 border-b border-gray-100 dark:border-slate-800 flex items-center">
+                    <span className='text-sm text-center text-gray-600 dark:text-slate-400 mr-2'>
                         {filters.length > 0
                             && `Filters Applied: ${filters.length} criteria active`
                         }
@@ -264,9 +264,9 @@ const LineItemCard = ({
                 </div>
 
                 {/* Item List (Filtered Clusters) */}
-                <div className="mt-6 border border-dashed border-gray-300 p-4 rounded-xl bg-gray-50">
+                <div className="mt-6 border border-dashed border-gray-300 dark:border-slate-800 p-4 rounded-xl bg-gray-50 dark:bg-slate-950">
                     {itemClusters.length === 0 && filters.length > 0 ? (
-                        <p className="text-sm text-center text-red-500 italic mt-4 p-2 bg-yellow-50 rounded-lg">
+                        <p className="text-sm text-center text-red-500 dark:text-red-400 italic mt-4 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
                             No items match the current filter criteria.
                         </p>
                     ) : itemClusters.map(itemDetails => (
@@ -279,7 +279,7 @@ const LineItemCard = ({
                 </div>
 
                 {availableQuantity === 0 && (
-                    <p className="text-sm text-center text-red-500 italic mt-4 p-2 bg-red-50 rounded-lg">
+                    <p className="text-sm text-center text-red-500 dark:text-red-400 italic mt-4 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg">
                         All {lineItem.po_item_details.length} items have been queued for dispatch.
                     </p>
                 )}
@@ -370,15 +370,15 @@ const ItemsFilter = ({
         <ReactModal
             isOpen={isOpen}
             onRequestClose={onClose}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 z-50"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-slate-900 rounded-xl shadow-2xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto border dark:border-slate-800 outline-none"
+            overlayClassName="modal-overlay"
             contentLabel="Item Filters"
         >
-            <div className="flex justify-between items-center border-b pb-3 mb-4">
-                <h3 className="text-xl font-bold text-gray-800 flex items-center">
-                    <Filter className="w-5 h-5 mr-2 text-blue-600" /> Apply Item Filters
+            <div className="flex justify-between items-center border-b dark:border-slate-800 pb-3 mb-4">
+                <h3 className="text-xl font-bold text-gray-800 dark:text-slate-100 flex items-center">
+                    <Filter className="w-5 h-5 mr-2 text-blue-600 dark:text-blue-500" /> Apply Item Filters
                 </h3>
-                <button onClick={onClose} className="p-1 rounded-full text-gray-400 hover:text-gray-600">
+                <button onClick={onClose} className="p-1 rounded-full text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                     <X className="h-6 w-6" />
                 </button>
             </div>
@@ -387,18 +387,18 @@ const ItemsFilter = ({
                 {localSelectedFilters.map((row, index) => (
                     <div
                         key={row.id}
-                        className="flex flex-col sm:flex-row sm:items-center gap-2 border border-gray-200 p-3 rounded-md bg-white"
+                        className="flex flex-col sm:flex-row sm:items-center gap-2 border border-gray-200 dark:border-slate-800 p-3 rounded-md bg-white dark:bg-slate-950"
                     >
                         {/* Make Select */}
                         <div className="flex-1 min-w-[100px]">
                             <Select
                                 className="w-full text-xs font-semibold"
-                                styles={{ ...commonSelectProps, control: (base) => ({ ...base, minWidth: '100px' }) }}
                                 options={makeOptions}
                                 value={row.make} // Connect to row state
                                 onChange={(selected) => updateFilterRow(row.id, 'make', selected)} // Update row state
                                 placeholder="Select Make"
                                 isClearable
+                                {...commonSelectProps}
                             />
                         </div>
 
@@ -406,12 +406,12 @@ const ItemsFilter = ({
                         <div className="flex-1 min-w-[100px]">
                             <Select
                                 className="w-full text-xs font-semibold"
-                                styles={{ ...commonSelectProps, control: (base) => ({ ...base, minWidth: '100px' }) }}
                                 options={modelOptions}
                                 value={row.model}
                                 onChange={(selected) => updateFilterRow(row.id, 'model', selected)}
                                 placeholder="Select Model"
                                 isClearable
+                                {...commonSelectProps}
                             />
                         </div>
 
@@ -419,12 +419,12 @@ const ItemsFilter = ({
                         <div className="flex-1 min-w-[100px]">
                             <Select
                                 className="w-full text-xs font-semibold"
-                                styles={{ ...commonSelectProps, control: (base) => ({ ...base, minWidth: '100px' }) }}
                                 options={partOptions}
                                 value={row.part}
                                 onChange={(selected) => updateFilterRow(row.id, 'part', selected)}
                                 placeholder="Select Part"
                                 isClearable
+                                {...commonSelectProps}
                             />
                         </div>
 
@@ -432,19 +432,19 @@ const ItemsFilter = ({
                         <div className="flex-1 min-w-[100px]">
                             <Select
                                 className="w-full text-xs font-semibold"
-                                styles={{ ...commonSelectProps, control: (base) => ({ ...base, minWidth: '100px' }) }}
                                 options={projectOptions}
                                 value={row.project}
                                 onChange={(selected) => updateFilterRow(row.id, 'project', selected)}
                                 placeholder="Select Project"
                                 isClearable
+                                {...commonSelectProps}
                             />
                         </div>
 
                         {/* Remove Button (Only show if more than one filter row exists) */}
                         <button
                             onClick={() => removeFilterRow(row.id)}
-                            className="p-2 text-gray-400 hover:text-red-600 transition-colors self-center sm:self-auto"
+                            className="p-2 text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors self-center sm:self-auto"
                             title={localSelectedFilters.length === 1 ? "At least one filter row is required" : "Remove this filter row"}
                         //disabled={localSelectedFilters.length === 1}
                         >
@@ -455,17 +455,17 @@ const ItemsFilter = ({
 
                 <button
                     onClick={addFilterRow}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-blue-600 border border-blue-200 hover:bg-blue-50 rounded-md transition-colors"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
                 >
                     <PlusCircle className="h-5 w-5" />
                     <span>Add Filter Row</span>
                 </button>
             </div>
 
-            <div className="mt-6 pt-4 border-t flex justify-end space-x-3">
+            <div className="mt-6 pt-4 border-t dark:border-slate-800 flex justify-end space-x-3">
                 <button
                     onClick={handleClear}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-800 rounded-md hover:bg-gray-300 dark:hover:bg-slate-700 transition-colors"
                 >
                     Clear All
                 </button>

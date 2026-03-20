@@ -12,15 +12,15 @@ import NoDataAvailable from '../../utils/NoDataUi';
 const getStatusProps = (status) => {
     switch (status) {
         case 'RMA Generated':
-            return { color: 'text-yellow-600 bg-yellow-100', icon: Clock };
+            return { color: 'text-yellow-600 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/30', icon: Clock };
         case 'Dispatch Initiated':
-            return { color: 'text-blue-600 bg-blue-100', icon: Package };
+            return { color: 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30', icon: Package };
         case 'Item Received':
-            return { color: 'text-green-600 bg-green-100', icon: CheckCircle };
+            return { color: 'text-green-600 bg-green-100 dark:text-green-400 dark:bg-green-900/30', icon: CheckCircle };
         case 'Rejected':
-            return { color: 'text-red-600 bg-red-100', icon: XCircle };
+            return { color: 'text-red-600 bg-red-100 dark:text-red-400 dark:bg-red-900/30', icon: XCircle };
         default:
-            return { color: 'text-gray-600 bg-gray-100', icon: FileText };
+            return { color: 'text-gray-600 bg-gray-100 dark:text-gray-400 dark:bg-slate-800', icon: FileText };
     }
 };
 const RmaDashboard = () => {
@@ -80,19 +80,19 @@ const RmaDashboard = () => {
     };
 
     return (
-        <div className="max-h-[70vh] h-[70vh] bg-white p-6 rounded-xl shadow-lg border border-gray-100 flex flex-col">
+        <div className="max-h-[75vh] h-full bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-slate-800 flex flex-col">
             <div className="flex flex-wrap items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold text-gray-800 flex items-center flex-wrap truncate">
-                    <Package className="w-6 h-6 mr-2 text-teal-600" />
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-slate-100 flex items-center flex-wrap truncate">
+                    <Package className="w-6 h-6 mr-2 text-teal-600 dark:text-teal-400" />
                     Track RMA Status ({rmaList.length})
                 </h2>
                 <div className="relative w-full hidden md:block md:w-auto">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
                     <input
                         type="text"
                         placeholder="Search RMA"
-                        className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out text-sm"
-                        value={search}
+                        className="w-full py-2 pl-10 pr-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out text-sm"
+                        value={search || ''}
                         onChange={(e) => setSearch(e.target.value)}
                     />
                 </div>
@@ -109,16 +109,16 @@ const RmaDashboard = () => {
                             return (
                                 <div
                                     key={rma.rma_id}
-                                    className="border border-gray-200 rounded-xl hover:shadow-lg transition duration-200 overflow-hidden"
+                                    className="border border-gray-200 dark:border-slate-800 rounded-xl hover:shadow-lg transition duration-200 overflow-hidden"
                                 >
                                     {/* Header Row */}
                                     <div
-                                        className="p-4 bg-gray-50 cursor-pointer flex justify-between items-center"
+                                        className="p-4 bg-gray-50 dark:bg-slate-800/50 cursor-pointer flex justify-between items-center"
                                         onClick={() => toggleExpand(rma.rma_id)}
                                     >
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-500 truncate">{rma.product_name || 'N/A'} / {rma.serial_number || rma.old_serial_number_at_rma || rma.new_serial_number}</p>
-                                            <p className="text-lg font-semibold text-gray-900">{rma.rma_number}</p>
+                                            <p className="text-sm font-medium text-gray-500 dark:text-slate-400 truncate">{rma.product_name || 'N/A'} / {rma.serial_number || rma.old_serial_number_at_rma || rma.new_serial_number}</p>
+                                            <p className="text-lg font-semibold text-gray-900 dark:text-slate-100">{rma.rma_number}</p>
                                         </div>
 
                                         {/* Status Badge */}
@@ -127,41 +127,41 @@ const RmaDashboard = () => {
                                                 <StatusIcon className="w-4 h-4 mr-1" />
                                                 {rma.item_status}
                                             </span>
-                                            {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                                            {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-500 dark:text-slate-400" /> : <ChevronDown className="w-5 h-5 text-gray-500 dark:text-slate-400" />}
                                         </div>
                                     </div>
 
                                     {/* Expanded Details */}
                                     {isExpanded && (
-                                        <div className="p-4 border-t border-gray-200 bg-white">
+                                        <div className="p-4 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                                 <div>
-                                                    <p className="font-medium text-gray-700">Fault Date:</p>
-                                                    <p className="text-gray-900">{new Date(rma.fault_date).toLocaleDateString()}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Fault Date:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100">{new Date(rma.fault_date).toLocaleDateString()}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-700">Date Requested:</p>
-                                                    <p className="text-gray-900">{new Date(rma.rma_date).toLocaleDateString()}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Date Requested:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100">{new Date(rma.rma_date).toLocaleDateString()}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-700">Tracking Number:</p>
-                                                    <p className="text-gray-900">{rma.tracking_id || 'N/A'}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Tracking Number:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100">{rma.tracking_id || 'N/A'}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-700">Case Number:</p>
-                                                    <p className="text-gray-900">{rma.case_number || 'N/A'}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Case Number:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100">{rma.case_number || 'N/A'}</p>
                                                 </div>
                                                 <div className="sm:col-span-2">
-                                                    <p className="font-medium text-gray-700">Fault/Issue Description:</p>
-                                                    <p className="text-gray-900 whitespace-pre-wrap italic bg-gray-50 p-3 rounded-lg border">{rma.detailed_fault_description || 'N/A'}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Fault/Issue Description:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100 whitespace-pre-wrap italic bg-gray-50 dark:bg-slate-800 p-3 rounded-lg border border-gray-200 dark:border-slate-700">{rma.detailed_fault_description || 'N/A'}</p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-medium text-gray-700">Severity:</p>
-                                                    <p className="text-gray-900">{rma.severity || 'N/A'}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Severity:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100">{rma.severity || 'N/A'}</p>
                                                 </div>
                                                 <div className="sm:col-span-1">
-                                                    <p className="font-medium text-gray-700">Internal Resolution/Notes:</p>
-                                                    <p className="text-gray-900 whitespace-pre-wrap font-mono text-xs">{rma.requested_resolution}</p>
+                                                    <p className="font-medium text-gray-700 dark:text-slate-300">Internal Resolution/Notes:</p>
+                                                    <p className="text-gray-900 dark:text-slate-100 whitespace-pre-wrap font-mono text-xs">{rma.requested_resolution}</p>
                                                 </div>
                                                 {rma.item_status === 'Dispatch Initiated' && isRelationshipEngineer && <div>
                                                     <button
@@ -238,7 +238,7 @@ const RmaDashboard = () => {
                                             <div className="flex justify-between items-end">
                                                 {rma?.item_status === "Item Received" ? (
                                                     <div className="flex items-end">
-                                                        <p className="text-red-600">Case Resolved</p>
+                                                        <p className="text-red-600 dark:text-red-400">Case Resolved</p>
                                                     </div>
                                                 ) : (
                                                     <span>&nbsp;</span>
@@ -249,7 +249,7 @@ const RmaDashboard = () => {
                                                         e.stopPropagation();
                                                         setHistoryModal({ open: true, type: 'view-status', data: { params: { rma_id: rma.rma_id, po_item_details_id: rma.po_item_details_id } }, parentRow: rma, table: 'RMA' });
                                                     }}
-                                                    className="text-indigo-600 hover:text-indigo-800 text-sm font-semibold underline focus:outline-none"
+                                                    className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 text-sm font-semibold underline focus:outline-none"
                                                 >
                                                     View History
                                                 </button>
@@ -262,26 +262,26 @@ const RmaDashboard = () => {
                     )}
             </div>
             {/* footer having pagination part */}
-            <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 mt-4 flex-none">
+            <div className="flex items-center justify-between border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 sm:px-6 mt-4 flex-none">
                 <div className="flex flex-1 justify-between sm:hidden">
                     <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className={`relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-50'}`}
+                        className={`relative inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium ${currentPage === 1 ? 'text-gray-300 dark:text-slate-600' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                     >
                         Previous
                     </button>
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'text-gray-300' : 'text-gray-700 hover:bg-gray-50'}`}
+                        className={`relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 dark:text-slate-600' : 'text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700'}`}
                     >
                         Next
                     </button>
                 </div>
                 <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
-                        <p className="text-sm text-gray-700">
+                        <p className="text-sm text-gray-700 dark:text-slate-300">
                             Showing <span className="font-medium">{(currentPage - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(currentPage * limit, totalRecords)}</span> of{' '}
                             <span className="font-medium">{totalRecords}</span> records
                         </p>
@@ -291,7 +291,7 @@ const RmaDashboard = () => {
                                 setLimit(Number(e.target.value));
                                 setCurrentPage(1); // Reset to first page when limit changes
                             }}
-                            className="block w-20 rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:max-w-xs sm:text-sm sm:leading-6"
+                            className="block w-20 rounded-md border-0 py-1.5 text-gray-900 dark:text-slate-200 bg-white dark:bg-slate-800 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:max-w-xs sm:text-sm sm:leading-6"
                         >
                             {[7, 10, 15, 25, 50].map((pageSize) => (
                                 <option key={pageSize} value={pageSize}>
@@ -305,7 +305,7 @@ const RmaDashboard = () => {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                                 disabled={currentPage === 1}
-                                className={`relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:bg-gray-50'}`}
+                                className={`relative inline-flex items-center rounded-l-md px-2 py-2 ring-1 ring-inset ring-gray-300 dark:ring-slate-700 focus:z-20 focus:outline-offset-0 ${currentPage === 1 ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed' : 'text-gray-400 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
                             >
                                 <span className="sr-only">Previous</span>
                                 <ChevronLeft className="h-5 w-5" aria-hidden="true" />
@@ -319,9 +319,9 @@ const RmaDashboard = () => {
                                         key={pageNumber}
                                         onClick={() => setCurrentPage(pageNumber)}
                                         aria-current={currentPage === pageNumber ? 'page' : undefined}
-                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 ${currentPage === pageNumber
-                                            ? 'bg-teal-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600'
-                                            : 'text-gray-900 hover:bg-gray-50'
+                                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 dark:ring-slate-700 focus:z-20 focus:outline-offset-0 ${currentPage === pageNumber
+                                            ? 'bg-teal-600 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600'
+                                            : 'text-gray-900 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800'
                                             }`}
                                     >
                                         {pageNumber}
@@ -332,7 +332,7 @@ const RmaDashboard = () => {
                             <button
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                                 disabled={currentPage === totalPages}
-                                className={`relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-400 hover:bg-gray-50'}`}
+                                className={`relative inline-flex items-center rounded-r-md px-2 py-2 ring-1 ring-inset ring-gray-300 dark:ring-slate-700 focus:z-20 focus:outline-offset-0 ${currentPage === totalPages ? 'text-gray-300 dark:text-slate-600 cursor-not-allowed' : 'text-gray-400 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800'}`}
                             >
                                 <span className="sr-only">Next</span>
                                 <ChevronRight className="h-5 w-5" aria-hidden="true" />

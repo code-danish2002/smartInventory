@@ -3,6 +3,7 @@ import { Edit } from 'lucide-react';
 import api from '../api/apiCall';
 import { useToast } from '../context/toastProvider';
 import AsyncSelect from 'react-select/async';
+import { commonSelectProps } from '../utils/CommonCSS';
 
 const ProjectNumberEdit = ({ isOpen = true, onClose, onSubmit, selectedItems }) => {
     const [newProjectNumber, setNewProjectNumber] = useState('');
@@ -48,27 +49,14 @@ const ProjectNumberEdit = ({ isOpen = true, onClose, onSubmit, selectedItems }) 
         });
     };
 
-    const commonSelectProps = {
-        menuPortalTarget: typeof document !== 'undefined' ? document.body : null,
-        menuPosition: 'absolute',
-        styles: {
-            menuPortal: base => ({ ...base, zIndex: 10000 }),
-            control: base => ({ ...base, minHeight: '42px', maxHeight: '65px', overflowY: 'auto' }),
-            valueContainer: base => ({ ...base, maxHeight: '65px', overflowY: 'auto' }),
-            menu: base => ({ ...base, maxHeight: '200px', overflowY: 'auto', zIndex: 10000 }),
-            menuList: base => ({ ...base, maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'none', zIndex: 10000 }),
-            indicatorSeparator: base => ({ ...base, display: 'none' }),
-            indicatorsContainer: base => ({ ...base, }),
-            multiValue: base => ({ ...base, maxWidth: '95%' }),
-        }
-    };
+
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-                <h3 className="text-xl font-semibold mb-4">Update Project Number</h3>
-                <p className="text-gray-600 mb-4">
-                    Enter the new Project Number for the **{selectedItems.length}** selected item(s).
+        <div className="modal-overlay">
+            <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl p-6 w-full max-w-md border dark:border-slate-800">
+                <h3 className="text-xl font-semibold mb-2 text-gray-800 dark:text-slate-100">Update Project Number</h3>
+                <p className="text-gray-600 dark:text-slate-400 mb-6 text-sm">
+                    Enter the new Project Number for the <span className="font-bold text-gray-900 dark:text-slate-200">{selectedItems.length}</span> selected item(s).
                 </p>
                 <form onSubmit={handleSubmit}>
                     <AsyncSelect
@@ -81,7 +69,7 @@ const ProjectNumberEdit = ({ isOpen = true, onClose, onSubmit, selectedItems }) 
                             setNewProjectNumber(option ? Number(option.value) : null);
                         }}
                         isClearable
-                        className={`react-select-container w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 mb-6`}
+                        className={`react-select-container w-full border border-gray-300 dark:border-slate-700 rounded-md focus:ring-blue-500 focus:border-blue-500 mb-6`}
                         classNamePrefix="react-select"
                         placeholder="Search existing Project Numbers..."
                         {...commonSelectProps}
@@ -90,16 +78,16 @@ const ProjectNumberEdit = ({ isOpen = true, onClose, onSubmit, selectedItems }) 
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition"
+                            className="px-4 py-2 text-gray-700 dark:text-slate-300 bg-gray-200 dark:bg-slate-800 rounded-md hover:bg-gray-300 dark:hover:bg-slate-700 transition font-medium"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="px-4 py-2 text-white bg-indigo-500 rounded-md hover:bg-indigo-600 transition"
+                            className="px-6 py-2 text-white bg-indigo-600 dark:bg-indigo-600 rounded-md hover:bg-indigo-700 dark:hover:bg-indigo-700 transition font-bold shadow-md shadow-indigo-100 dark:shadow-none disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!newProjectNumber || loading}
                         >
-                            Apply Update
+                            {loading ? 'Updating...' : 'Apply Update'}
                         </button>
                     </div>
                 </form>

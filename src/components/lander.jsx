@@ -49,16 +49,18 @@ const Lander = () => {
 
 
     return (
-        <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white">
             {/* Background image (logo as translucent background) */}
-            <img
-                src={logo}
-                alt="Background Logo"
-                className="fixed top-0 left-0 w-full h-full object-contain opacity-5 z-0"
-            />
+            <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+                <img
+                    src={logo}
+                    alt="Background Logo"
+                    className="fixed top-0 left-0 w-full h-full object-contain opacity-5 z-0"
+                />
+            </div>
 
             {/* Overlay for dim effect */}
-            <div className="fixed inset-0 bg-black bg-opacity-40 z-10"></div>
+            <div className="absolute inset-0 bg-black/40 z-10 pointer-events-none"></div>
 
             {/* Main content */}
             <div className="relative z-20 flex flex-col items-center justify-center min-h-screen px-4">
@@ -71,7 +73,7 @@ const Lander = () => {
                     <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">
                         Welcome to RCIL
                     </h1>
-                    <h3 className="text-xl sm:text-2xl font-semibold mb-4">
+                    <h3 className="text-xl text-black sm:text-2xl font-semibold mb-4">
                         You’re on the{' '}
                         <span className="bg-gradient-to-r from-blue-700 via-blue-500 to-blue-300 bg-clip-text text-transparent">
                             Smart Inventory

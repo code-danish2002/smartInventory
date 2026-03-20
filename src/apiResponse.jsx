@@ -8,12 +8,13 @@ import { Warning } from "./utils/icons";
 
 export default function ShowApiMessage({ id, message, onClose }) {
     const [visible, setVisible] = useState(true);
+    console.log('message', message);
 
     // Extract status code if available.
     const statusCode = message?.response?.status || message?.status;
-    const rawDetail = message?.response?.data?.message || message?.response?.data?.detail || message?.response?.data?.error || message?.response?.statusText || message?.['error'] || message?.message;
+    const rawDetail = message?.response?.data?.message || message?.response?.data?.detail || message?.response?.data?.error || message?.response?.statusText || message?.['error'] || message?.message || message?.error;
     const messageDetails = normalizeDetails(rawDetail);
-    console.log('statusCode', statusCode, 'message', message, 'rawDetail', rawDetail, messageDetails, 'message', message?.response?.data?.detail, 'other', message?.message);
+    console.log('statusCode', statusCode, 'message raw', message, 'rawDetail', rawDetail, messageDetails, 'message detail', message?.response?.data?.detail, 'message error', message?.response?.data?.error, 'other', message?.message, 'direct error', message?.error);
 
     // Variables for displaying the message.
     let statusType = "";

@@ -6,6 +6,8 @@ import LineItemCard from './lineItemCard';
 import ReadMore from '../../utils/readMore';
 import ReactModal from 'react-modal';
 import { OnSubmitLoading } from '../../utils/icons';
+import { downloadPDF } from '../../utils/downloadResponsePdf';
+import { ContentLoading } from '../../globalLoading';
 
 
 // --- DispatchModal Component (The main container) ---
@@ -14,7 +16,7 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [poData, setPoData] = useState(null);
     const addToast = useToast();
-    
+
     // State to manage dispatch forms at line item level
     const [editingDispatchId, setEditingDispatchId] = useState(null);
     const [isAddingNew, setIsAddingNew] = useState(null); // Store line item ID
@@ -103,13 +105,13 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
         }
     }, [handleUpdateLineItemDispatches]);
 
-    if (loading) {
-        return (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center">
-                <div className="text-white text-xl">Loading...</div>
-            </div>
-        );
-    }
+    // if (loading) {
+    //     return (
+    //         <div className="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center">
+    //             <div className="text-white text-xl">Loading...</div>
+    //         </div>
+    //     );
+    // }
 
     const createApiBody = () => {
         const stores = [];
@@ -180,6 +182,8 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
         let dispatchFrom = 'inspection';
         if (phaseName === 'At Store') dispatchFrom = 'store';
         else if (phaseName === 'On Site') dispatchFrom = 'site';
+        else if (phaseName === 'OEM Spare') dispatchFrom = 'spare';
+        else if (phaseName === 'Live') dispatchFrom = 'live';
 
         return {
             po_id: poData.po_id,
@@ -196,22 +200,22 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
             isOpen={true}
             onRequestClose={onClose}
             ariaHideApp={false}
-            className="fixed inset-0 flex items-center justify-center p-4 sm:p-8 z-50 transition-opacity duration-300"
-            overlayClassName="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-40"
+            className="fixed inset-0 flex items-center justify-center p-4 sm:p-8 z-50 transition-opacity duration-300 outline-none"
+            overlayClassName="modal-overlay"
             contentLabel="Item Inspection"
             shouldCloseOnEsc={true}
             shouldCloseOnOverlayClick={true}
         >
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] mx-auto flex flex-col transform transition-all duration-300">
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl dark:shadow-slate-800 w-full max-w-7xl max-h-[95vh] mx-auto flex flex-col transform transition-all duration-300 border border-gray-200 dark:border-slate-800">
                 {/* Modal Header */}
-                <div className="flex-shrink-0 bg-white px-6 py-3 border-b border-gray-200 z-10 rounded-t-2xl shadow-sm">
+                <div className="flex-shrink-0 bg-white dark:bg-slate-900 px-6 py-3 border-b border-gray-200 dark:border-slate-800 z-10 rounded-t-2xl shadow-sm">
                     <div className='flex justify-between items-start'>
-                        <h1 className="text-3xl font-extrabold text-gray-900">
-                            Dispatch Items {poData ? `for PO #${poData.po_number}` : ''}
+                        <h1 className="text-3xl font-extrabold text-gray-900 dark:text-slate-100">
+                            Dispatch Item(s) {poData ? `for PO #${poData.po_number}` : ''}
                         </h1>
                         <button
                             onClick={onClose}
-                            className="p-2 rounded-full text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-gray-600 transition"
+                            className="p-2 rounded-full text-gray-400 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 hover:text-gray-600 dark:hover:text-slate-200 transition"
                             title="Close"
                             aria-label="Close"
                             disabled={isSubmitting}
@@ -224,41 +228,45 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
                 </div>
 
                 {/* Line Items List - Fixed scroll issue */}
-                <div className="p-6 flex-grow overflow-auto">
-                    {poData?.po_line_items?.length > 0 ? (<div className='space-y-4'>
-                        {poData?.po_line_items.map(lineItem => {
-                            const totalDispatched = lineItem.dispatches.reduce((sum, d) => sum + d.quantity, 0);
-                            const availableQuantity = lineItem.po_item_details.length - totalDispatched;
+                {loading ? (
+                    <ContentLoading />
+                ) : (
+                    <div className="p-6 flex-grow overflow-auto">
+                        {poData?.po_line_items?.length > 0 ? (<div className='space-y-4'>
+                            {poData?.po_line_items.map(lineItem => {
+                                const totalDispatched = lineItem.dispatches.reduce((sum, d) => sum + d.quantity, 0);
+                                const availableQuantity = lineItem.po_item_details.length - totalDispatched;
 
-                            return (
-                                <LineItemCard
-                                    key={lineItem.po_line_item_id}
-                                    lineItem={lineItem}
-                                    onUpdateItemDetails={() => { }} // Not used anymore
-                                    availableQuantity={availableQuantity}
-                                    dispatches={lineItem.dispatches}
-                                    editingDispatchId={editingDispatchId}
-                                    setEditingDispatchId={setEditingDispatchId}
-                                    isAddingNew={isAddingNew === lineItem.po_line_item_id}
-                                    setIsAddingNew={(val) => setIsAddingNew(val ? lineItem.po_line_item_id : null)}
-                                    handleSaveDispatch={(dispatch) => handleSaveDispatch(dispatch, lineItem)}
-                                    handleDeleteDispatch={(dispatchId) => handleDeleteDispatch(dispatchId, lineItem)}
-                                    phaseName={phaseName}
-                                />
-                            );
-                        })}
-                    </div>
-                    ) : (
-                        <div className="text-center py-10 text-gray-500">
-                            <Package className="w-10 h-10 mx-auto mb-3" />
-                            <p className="text-xl font-semibold">No Line Items Found</p>
-                            <p>This Purchase Order items need approval before dispatch.</p>
+                                return (
+                                    <LineItemCard
+                                        key={lineItem.po_line_item_id}
+                                        lineItem={lineItem}
+                                        onUpdateItemDetails={() => { }} // Not used anymore
+                                        availableQuantity={availableQuantity}
+                                        dispatches={lineItem.dispatches}
+                                        editingDispatchId={editingDispatchId}
+                                        setEditingDispatchId={setEditingDispatchId}
+                                        isAddingNew={isAddingNew === lineItem.po_line_item_id}
+                                        setIsAddingNew={(val) => setIsAddingNew(val ? lineItem.po_line_item_id : null)}
+                                        handleSaveDispatch={(dispatch) => handleSaveDispatch(dispatch, lineItem)}
+                                        handleDeleteDispatch={(dispatchId) => handleDeleteDispatch(dispatchId, lineItem)}
+                                        phaseName={phaseName}
+                                    />
+                                );
+                            })}
                         </div>
-                    )}
-                </div>
+                        ) : (
+                            <div className="text-center py-10 text-gray-500 dark:text-slate-400 font-medium">
+                                <Package className="w-10 h-10 mx-auto mb-3 text-gray-400 dark:text-slate-500" />
+                                <p className="text-xl font-semibold text-gray-800 dark:text-slate-200">No Line Items Found</p>
+                                <p className="text-gray-600 dark:text-slate-400">This Purchase Order items need approval before dispatch.</p>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Save Button (API call) */}
-                <div className="flex-shrink-0 p-4 border-t border-gray-200 bg-gray-50 flex justify-end rounded-b-2xl">
+                <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex justify-end rounded-b-2xl">
                     <button
                         onClick={() => {
                             if (isSubmitting) return;
@@ -287,11 +295,19 @@ const DispatchModal = ({ po_id = 4, onClose, phaseName, onSubmit }) => {
                             api.post('/api/operation-store-dispatch', apiBody)
                                 .then(response => {
                                     console.log("Dispatch successful:", response.data);
+                                    const pdfUrl = response?.data?.dispatch_report_url;
+                                    const filename = response?.data?.dispatch_report_key?.split('/').pop() || 'Dispatch.pdf';
+                                    if (pdfUrl) {
+                                        downloadPDF(pdfUrl, filename);
+                                        console.log("PDF downloaded successfully");
+                                    }
                                     if (onSubmit) onSubmit();
+                                    addToast(response);
                                     onClose();
                                 })
                                 .catch(error => {
                                     console.error("Error saving dispatch:", error);
+                                    addToast(error);
                                 })
                                 .finally(() => setIsSubmitting(false));
                         }}

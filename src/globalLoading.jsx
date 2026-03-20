@@ -2,20 +2,36 @@ import React from "react";
 
 export default function GlobalLoading() {
     return (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-            <div className="loader"></div>
+        <div className="modal-overlay z-[9999]">
+            <div className="flex flex-col items-center gap-4">
+                <div className="loader"></div>
+                <p className="text-white font-medium animate-pulse tracking-wide">Processing...</p>
+            </div>
             <style jsx>{`
                 .loader {
-                    border: 8px solid #f3f3f3;
-                    border-top: 8px solid #3498db;
+                    width: 50px;
+                    aspect-ratio: 1;
+                    display: grid;
+                    border: 4px solid #0000;
                     border-radius: 50%;
-                    width: 60px;
-                    height: 60px;
-                    animation: spin 2s linear infinite;
+                    border-right-color: #3b82f6;
+                    animation: l15 1s infinite linear;
                 }
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
+                .loader::before,
+                .loader::after {    
+                    content: "";
+                    grid-area: 1/1;
+                    margin: 2px;
+                    border: inherit;
+                    border-radius: 50%;
+                    animation: l15 2s infinite;
+                }
+                .loader::after {
+                    margin: 8px;
+                    animation-duration: 3s;
+                }
+                @keyframes l15 { 
+                    100% { transform: rotate(1turn); }
                 }
             `}</style>
         </div>
@@ -25,12 +41,12 @@ export default function GlobalLoading() {
 const ContentLoading = () => {
     return (
         <div className="flex items-center justify-center w-full h-full min-h-[50vh] p-8">
-            <div 
+            <div
                 className="w-12 h-12 border-4 border-t-4 border-t-sky-500 border-gray-200 rounded-full animate-spin"
                 role="status"
                 aria-label="Content loading"
             >
-                <span className="sr-only">Loading...</span> 
+                <span className="sr-only">Loading...</span>
             </div>
         </div>
     );

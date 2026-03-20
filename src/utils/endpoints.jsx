@@ -6,23 +6,7 @@ const endpoints = {
     },
 
     Certificates: {
-        get: { url: '/api/po_details_for_pdf', params: ['page', 'limit'], body: [] },
-    },
-
-    Users: {
-        get: { url: '/api/user_details_full', params: ['page', 'limit'], body: [] },
-        update: {
-            url: '/api/user-details/{user_id}', params: ['user_id'],
-            body: [
-                { name: 'user_location', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'User Location', placeholder: 'Enter User Location' },
-                { name: 'pop_id', type: 'number', element: 'select', isRequired: true, isDisabled: false, label: 'POP Name' },
-            ]
-        },
-    },
-
-    'All POs': {
-        get: { url: '/api/poData', params: ['page', 'limit', 'search'], body: [] },
-        details: { url: '/api//poData/{po_id}', params: ['po_id'], body: [] },
+        get: { url: '/api/po_details_for_pdf', params: ['page', 'limit', 'search'], body: [] },
     },
 
     Firm: {
@@ -103,7 +87,6 @@ const endpoints = {
     PO: {
         create: { url: '/api/pos', params: {}, body: [] },
         update: { url: '/api/pos-correction/{po_id}', params: ['po_id'], body: [] },
-        delete: { url: '/api/po/delete', params: {}, body: [] },
         get: { url: '/api/pos', params: {}, body: [] },
         details: { url: '/api/po/details', params: {}, body: [] },
     },
@@ -111,15 +94,12 @@ const endpoints = {
     'Line Item': {
         create: { url: '/api/po/line-items/create', params: {}, body: [] },
         update: { url: '/api/po/line-items/update', params: {}, body: [] },
-        delete: { url: '/api/po/line-items/delete', params: {}, body: [] },
         get: { url: '/api/poLine/{po_id}/line-items', params: ['po_id'], body: [] },
     },
 
     'Item Details': {
         create: { url: '/api/po/item-details/create', params: {}, body: [] },
-        update: { url: '/api/po/item-details/update', params: {}, body: [] },
-        delete: { url: '/api/po/item-details/delete', params: {}, body: [] },
-        get: { url: '/api/line-items/{po_line_item_id}/items', params: ['po_line_item_id'], body: [] },
+        get: { url: '/api/line-items/{po_line_item_id}/hierarchy', params: ['po_line_item_id'], body: [] },
     },
 
     'Upload PDF': {
@@ -167,14 +147,6 @@ const endpoints = {
     'RMA History': {
         'get': { url: '/api/tracking/{po_item_details_id}', params: ['po_item_details_id', 'rma_id'], body: [] },
     },
-    'Rejected': {
-        update: {
-            url: '/api/operation/resend', params: [], body: [
-                { name: 'po_item_details_id', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'Item ID' },
-                { name: 'pop_id', type: 'string', element: 'input', isRequired: true, isDisabled: false, label: 'POP ID' },
-            ]
-        },
-    },
 };
 
 export default function getEndpoint(item, method, part, params = {}) {
@@ -190,8 +162,8 @@ export default function getEndpoint(item, method, part, params = {}) {
     if (part === 'url') {
         return config.url.replace(/{(\w+)}/g, (match, placeholder) => {
             if (item === 'Approve PO' && method === 'request-approval' && placeholder === 'id') return params['po_id'];
-            if (item === 'Line Item' && method === 'get' && placeholder === 'poId') return params['po_id'];
-            if (item === 'Item Details' && method === 'get' && placeholder === 'liId') return params['po_line_item_id'];
+            if (item === 'Line Item' && method === 'get' && placeholder === 'po_id') return params['po_id'];
+            if (item === 'Item Details' && method === 'get' && placeholder === 'po_line_item_id') return params['po_line_item_id'];
             if (item === 'At Store' && method === 'request-approval' && placeholder === 'stored_item_id') return params['po_item_details_id'];
             if (item === 'On Site' && method === 'request-approval' && placeholder === 'item_received_id') return params['po_item_details_id'];
             if (item === 'Type' && method === 'delete' && placeholder === 'id') return params['item_type_id'];
@@ -201,13 +173,18 @@ export default function getEndpoint(item, method, part, params = {}) {
             if (item === 'Stores' && method === 'delete' && placeholder === 'id') return params['store_id'];
             if (item === 'Stores' && method === 'details' && placeholder === 'id') return params['store_id'];
             if (item === 'Stores' && method === 'update' && placeholder === 'id') return params['store_id'];
-            const paramValue = params[placeholder]; // ✅ use placeholder key
+            if (item === 'Track History' && method === 'get' && placeholder === 'po_item_details_id') return params['po_item_details_id'];
+
+            const paramValue = params[placeholder];
             if (paramValue === undefined || paramValue === null) {
-                throw new Error(`Missing param for placeholder: ${placeholder}`);
+                // Return original placeholder if not found, to avoid crash or let generic logic handle it
+                console.warn(`Missing param for placeholder: ${placeholder}`);
+                return match;
             }
             return String(paramValue);
         });
     }
+
 
     if (part === 'params') return config.params;
     if (part === 'body') return config.body;

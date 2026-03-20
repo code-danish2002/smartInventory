@@ -7,15 +7,7 @@ import Select from 'react-select';
 
 let dispatchIdCounter = 1000;
 const getNextDispatchId = () => dispatchIdCounter++;
-const ItemDispatchForm = ({
-    lineItem,
-    initialDispatch = null,
-    onSave,
-    onCancel,
-    availableQuantity,
-    availableSerialNumbers,
-    phaseName,
-}) => {
+const ItemDispatchForm = ({ lineItem, initialDispatch = null, onSave, onCancel, availableQuantity, availableSerialNumbers, phaseName, }) => {
     const [formData, setFormData] = useState({
         quantity: initialDispatch?.quantity || '',
         phase: initialDispatch?.phase || '',
@@ -177,18 +169,18 @@ const ItemDispatchForm = ({
         }
     };
 
-    const inputClasses = "w-full p-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150";
+    const inputClasses = "w-full p-[0.6rem] border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 transition duration-150";
     const currentAssignedSerials = formData.assignedSerials;
 
     return (
-        <form onSubmit={handleSubmit} className="p-4 bg-gray-50 border border-gray-200 rounded-xl mt-4 space-y-3 shadow-inner">
-            <h4 className="text-lg font-semibold text-blue-700">
+        <form onSubmit={handleSubmit} className="p-4 bg-gray-50 dark:bg-slate-800/50 border border-gray-200 dark:border-slate-800 rounded-xl mt-4 space-y-3 shadow-inner">
+            <h4 className="text-lg font-semibold text-blue-700 dark:text-blue-400">
                 {isEditMode ? 'Edit Dispatch' : 'New Dispatch Request'}
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 {/* Quantity */}
                 <div className="md:col-span-1">
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 flex items-center mb-1">
+                    <label htmlFor="quantity" className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center mb-1">
                         <List className="w-4 h-4 mr-1 text-red-500" /> Quantity *
                     </label>
                     <input
@@ -199,16 +191,16 @@ const ItemDispatchForm = ({
                         min="1"
                         max={maxQuantity}
                         placeholder={`Max ${maxQuantity} available`}
-                        className={`${inputClasses} ${formData.quantity > maxQuantity ? 'border-red-500' : ''}`}
+                        className={inputClasses}
                         required
                     />
                     {formData.quantity > maxQuantity && (
-                        <p className="text-xs text-red-500 mt-1">Cannot exceed {maxQuantity} items.</p>
+                        <p className="text-xs text-red-500 dark:text-red-400 mt-1">Cannot exceed {maxQuantity} items.</p>
                     )}
                 </div>
 
                 <div className="md:col-span-1">
-                    <label htmlFor="serialNumbers" className="block text-sm font-medium text-gray-700 flex items-center mb-1">
+                    <label htmlFor="serialNumbers" className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center mb-1">
                         Serial Numbers ({selectedSerialNumbers.length}) *
                     </label>
                     <Select
@@ -221,27 +213,11 @@ const ItemDispatchForm = ({
                         value={currentAssignedSerials}
                         onChange={handleSerialNumberChange}
                         classNamePrefix="react-select"
-                        className="w-full border-1 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                        className="w-full border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                         {...commonSelectProps}
-                        styles={{
-                            ...commonSelectProps.styles,
-                            control: (base) => ({
-                                ...base,
-                                backgroundColor: base.backgroundColor,
-                                cursor: base.cursor,
-                                minHeight: '42px',
-                                maxHeight: '70px',
-                                overflowY: 'auto'
-                            }),
-                            option: (base) => ({
-                                ...base,
-                                cursor: base.cursor
-                            })
-                        }}
-                    // maxMenuHeight={200} // Optional
                     />
                     {formData.quantity !== currentAssignedSerials.length && formData.quantity > 0 && (
-                        <p className="text-xs text-red-500 mt-1">
+                        <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                             Quantity ({formData.quantity}) must match selected serial numbers ({currentAssignedSerials.length}).
                         </p>
                     )}
@@ -249,8 +225,8 @@ const ItemDispatchForm = ({
 
                 {/* Phase */}
                 <div className="md:col-span-1">
-                    <label htmlFor="phases" className="block text-sm font-medium text-gray-700 flex items-center mb-1">
-                        <Loader2 className="w-4 h-4 mr-1 text-yellow-600" /> Phase *
+                    <label htmlFor="phases" className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center mb-1">
+                        <Loader2 className="w-4 h-4 mr-1 text-yellow-600 dark:text-yellow-500" /> Phase *
                     </label>
                     <select
                         name="phase"
@@ -270,8 +246,8 @@ const ItemDispatchForm = ({
 
                 {/* Location */}
                 <div className="md:col-span-1">
-                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 flex items-center mb-1">
-                        <MapPin className="w-4 h-4 mr-1 text-green-600" /> Location *
+                    <label htmlFor="location" className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center mb-1">
+                        <MapPin className="w-4 h-4 mr-1 text-green-600 dark:text-green-500" /> Location *
                     </label>
                     {isLocationRequired ? (
                         <AsyncSelect
@@ -284,38 +260,23 @@ const ItemDispatchForm = ({
                                 setFormData(prev => ({ ...prev, location: option }))
                             }
                             classNamePrefix="react-select"
-                            className="w-full border-1 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                            className="w-full border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                             {...commonSelectProps}
-                            styles={{
-                                ...commonSelectProps.styles,
-                                control: (base) => ({
-                                    ...base,
-                                    backgroundColor: base.backgroundColor,
-                                    cursor: base.cursor,
-                                    minHeight: '42px',
-                                    maxHeight: '70px',
-                                    overflowY: 'auto'
-                                }),
-                                option: (base) => ({
-                                    ...base,
-                                    cursor: base.cursor
-                                })
-                            }}
                         />
                     ) : (
                         <input
                             type="text"
                             disabled
                             value="Not Required"
-                            className={`${inputClasses} bg-gray-100 text-gray-400`}
+                            className={`${inputClasses} bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500`}
                         />
                     )}
                 </div>
 
                 {/* Owner */}
                 <div className="md:col-span-1">
-                    <label htmlFor="owner" className="block text-sm font-medium text-gray-700 flex items-center mb-1">
-                        <Users className="w-4 h-4 mr-1 text-purple-600" /> Owner/Recipient *
+                    <label htmlFor="owner" className="text-sm font-medium text-gray-700 dark:text-slate-300 flex items-center mb-1">
+                        <Users className="w-4 h-4 mr-1 text-purple-600 dark:text-purple-500" /> Owner/Recipient *
                     </label>
                     {isLocationRequired ? (
                         <AsyncSelect
@@ -328,30 +289,15 @@ const ItemDispatchForm = ({
                                 setFormData(prev => ({ ...prev, owner: option }))
                             }
                             classNamePrefix="react-select"
-                            className="w-full border-1 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
+                            className="w-full border border-gray-300 dark:border-slate-700 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150"
                             {...commonSelectProps}
-                            styles={{
-                                ...commonSelectProps.styles,
-                                control: (base) => ({
-                                    ...base,
-                                    backgroundColor: base.backgroundColor,
-                                    cursor: base.cursor,
-                                    minHeight: '42px',
-                                    maxHeight: '70px',
-                                    overflowY: 'auto'
-                                }),
-                                option: (base) => ({
-                                    ...base,
-                                    cursor: base.cursor
-                                })
-                            }}
                         />
                     ) : (
                         <input
                             type="text"
                             disabled
                             value="Not Required"
-                            className={`${inputClasses} bg-gray-100 text-gray-400`}
+                            className={`${inputClasses} bg-gray-100 dark:bg-slate-800 text-gray-400 dark:text-slate-500`}
                         />
                     )}
 
@@ -362,7 +308,7 @@ const ItemDispatchForm = ({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition duration-150"
+                    className="flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-700 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition duration-150"
                 >
                     <X className="w-4 h-4 mr-2" /> Cancel
                 </button>

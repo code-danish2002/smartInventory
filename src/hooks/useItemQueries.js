@@ -1,71 +1,82 @@
 // src/hooks/useItemQueries.js
-import { useQuery, useQueries } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import api from '../api/apiCall';
 
-export const useItemTypes = () => {
+/**
+ * Generic helper to reduce boilerplate for lookup-style queries (Types, Makes, Models, Parts)
+ */
+const useBaseLookupQuery = ({ key, endpoint, params, transformSelect, enabled = true }) => {
   return useQuery({
-    queryKey: ['item-types'],
+    queryKey: [key, params],
     queryFn: async () => {
-      const response = await api.get('/api/item-type');
-      return response.data.data.map(i => ({ 
-        value: i.item_type_id, 
-        label: i.item_type_name 
-      }));
+      const response = await api.get(endpoint, {
+        params: {
+          page: params.page !== undefined ? params.page + 1 : undefined,
+          limit: params.limit,
+          search: params.search
+        }
+      });
+      if (params.page === undefined && transformSelect) {
+        return transformSelect(response.data.data);
+      }
+      return response.data;
     },
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    cacheTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 5 * 60 * 1000,
+    enabled,
   });
 };
 
-export const useItemMakes = (itemTypeId) => {
+export const useCardTableData = (phaseId, { page = 0, limit = 10, search = null } = {}) => {
   return useQuery({
-    queryKey: ['item-makes', itemTypeId],
+    queryKey: ['card-table-data', phaseId, page, limit, search],
     queryFn: async () => {
-      if (!itemTypeId) return [];
-      const response = await api.get(`/api/item-makes/by-type/${itemTypeId}`);
-      return response.data.data.map(i => ({ 
-        value: i.item_make_id, 
-        label: i.item_make_name 
-      }));
+      const response = await api.get(`/api/dashboard/${phaseId}`, {
+        params: { page: page + 1, limit, status_id: phaseId, search }
+      });
+      return response.data;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!itemTypeId, // Only run if itemTypeId exists
+    networkMode: 'always',
+    staleTime: 0,
+    cacheTime: 5 * 60 * 1000,
+    keepPreviousData: true,
   });
-};
+}
 
-export const useItemModels = (itemMakeId) => {
-  return useQuery({
-    queryKey: ['item-models', itemMakeId],
-    queryFn: async () => {
-      if (!itemMakeId) return [];
-      const response = await api.get(`/api/item-models/by-make/${itemMakeId}`);
-      return response.data.data.map(i => ({ 
-        value: i.item_model_id, 
-        label: i.item_model_name 
-      }));
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!itemMakeId, // Only run if itemMakeId exists
-  });
-};
+export const useItemTypes = (params = {}) => useBaseLookupQuery({
+  key: 'item-types',
+  endpoint: '/api/item-types',
+  params,
+  transformSelect: (data) => data.map(i => ({ value: i.item_type_id, label: i.item_type_name }))
+});
 
-export const useItemParts = (itemModelId) => {
-  return useQuery({
-    queryKey: ['item-parts', itemModelId],
-    queryFn: async () => {
-      if (!itemModelId) return { parts: [], descriptions: {} };
-      const response = await api.get(`/api/item-parts/by-model/${itemModelId}`);
-      const parts = response.data.data.map(i => ({ 
-        value: i.item_part_id, 
-        label: i.item_part_code 
-      }));
-      const descriptions = response.data.data.reduce((acc, i) => {
-        acc[i.item_part_id] = i.item_part_description;
-        return acc;
-      }, {});
-      return { parts, descriptions };
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    enabled: !!itemModelId, // Only run if itemModelId exists
-  });
-};
+export const useItemMakes = (itemTypeId, params = {}) => useBaseLookupQuery({
+  key: 'item-makes',
+  endpoint: itemTypeId ? `/api/item-makes/by-type/${itemTypeId}` : '/api/item-makes',
+  params,
+  enabled: !!itemTypeId || params.page !== undefined,
+  transformSelect: (data) => data.map(i => ({ value: i.item_make_id, label: i.item_make_name }))
+});
+
+export const useItemModels = (itemMakeId, params = {}) => useBaseLookupQuery({
+  key: 'item-models',
+  endpoint: itemMakeId ? `/api/item-models/by-make/${itemMakeId}` : '/api/item-models',
+  params,
+  enabled: !!itemMakeId || params.page !== undefined,
+  transformSelect: (data) => data.map(i => ({ value: i.item_model_id, label: i.item_model_name }))
+});
+
+export const useItemParts = (itemModelId, params = {}) => useBaseLookupQuery({
+  key: 'item-parts',
+  endpoint: itemModelId ? `/api/item-parts/by-model/${itemModelId}` : '/api/item-parts',
+  params,
+  enabled: !!itemModelId || params.page !== undefined,
+  transformSelect: (data) => {
+    const parts = data.map(i => ({ value: i.item_part_id, label: i.item_part_code }));
+    const descriptions = data.reduce((acc, i) => {
+      acc[i.item_part_id] = i.item_part_description;
+      return acc;
+    }, {});
+    return { parts, descriptions };
+  }
+});
+

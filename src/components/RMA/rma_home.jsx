@@ -11,12 +11,12 @@ export default function RMAPage() {
 
   const activeClasses = (tabName) =>
     activeTab === tabName
-      ? 'border-blue-600 text-blue-600 font-semibold'
-      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300';
+      ? 'border-blue-600 text-blue-600 dark:text-blue-400 font-semibold'
+      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-slate-600';
 
   return (
-    <div className="flex-1 h-[82.5vh] bg-gray-50 p-4 sm:p-6 font-sans">
-      <div className="max-w-4xl mx-auto">
+    <div className="flex-1 h-full bg-gray-50 dark:bg-slate-950 p-4 sm:p-6 font-sans">
+      <div className="max-w-5xl mx-auto">
         {/* <header className="mb-6">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 flex items-center">
             <RefreshCw className="w-8 h-8 mr-3 text-red-500" />
@@ -26,11 +26,11 @@ export default function RMAPage() {
         </header> */}
 
         {/* Tab Navigation */}
-        <div className="border-b border-gray-200 mb-8">
+        <div className="border-b border-gray-200 dark:border-slate-800 mb-8">
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('initiate')}
-              disabled={!isRelationshipEngineer}
+              //disabled={!isRelationshipEngineer}
               className={`whitespace-nowrap py-3 px-1 border-b-2 text-sm transition duration-150 ${activeClasses('initiate')}`}
             >
               Initiate New RMA

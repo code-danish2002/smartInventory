@@ -1,66 +1,44 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from './authContext';
 
 const CurrentRenderContext = createContext();
 
 export const CurrentRenderProvider = ({ children }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { groups } = useAuth();
-    const isAdmin = groups?.includes('item-inspection-admin');
-    const isRelationEngineer = groups?.includes('item-inspection-relation-engineer');
-    const isUser = groups?.includes('item-inspection-user');
-    const [currentRender, setCurrentRender] = useState(() => {
-        if (isRelationEngineer && !isAdmin) {
-            return 'RMA';
-        }
-        if (location.pathname === '/') {
-            return localStorage.getItem('currentRender') || 'Dashboard';
+
+    // Derive currentRender from URL path instead of state
+    const currentRender = useMemo(() => {
+        const path = location.pathname;
+        if (path === '/' || path === '/dashboard') return 'Dashboard';
+        if (path === '/rma') return 'RMA';
+        if (path === '/inventory') return 'Inventory';
+        if (path === '/certificates') return 'Certificates';
+        if (path.startsWith('/master/')) {
+            const type = path.split('/').pop();
+            return type.charAt(0).toUpperCase() + type.slice(1);
         }
         return 'Dashboard';
-    }
-    );
-
-    useEffect(() => {
-        if (isRelationEngineer && !isAdmin && currentRender !== 'RMA') {
-            setCurrentRender('RMA');
-        }
-    }, [isRelationEngineer, isAdmin, currentRender]);
-
-    // Update localStorage when currentRender changes
-    useEffect(() => {
-        if (location.pathname === '/') {
-            localStorage.setItem('currentRender', currentRender);
-        }
-    }, [currentRender, location.pathname]);
-
-    // Listen for browser back/forward buttons
-    useEffect(() => {
-        const handlePopState = () => {
-            if (location.pathname === '/') {
-                setCurrentRender('Dashboard');
-            }
-            window.history.pushState(null, '', window.location.href);
-        };
-
-        window.addEventListener('popstate', handlePopState);
-        return () => window.removeEventListener('popstate', handlePopState);
-    }, []);
+    }, [location.pathname]);
 
     const handleSetCurrentRender = (newRender) => {
-        if (newRender === currentRender) return;
-        setCurrentRender(newRender);
-        const isDrawerItem = ['Dashboard', 'Certificates', 'Type', 'Make', 'Model', 'Part', 'Firm', 'Stores', 'Users'].includes(newRender);
+        const pathMap = {
+            'Dashboard': '/dashboard',
+            'RMA': '/rma',
+            'Inventory': '/inventory',
+            'Certificates': '/certificates',
+        };
 
-        if (isDrawerItem) {
-            navigate('/', { replace: true });
+        if (pathMap[newRender]) {
+            navigate(pathMap[newRender]);
+        } else {
+            // Assume Master Data
+            navigate(`/master/${newRender.toLowerCase()}`);
         }
     };
 
     const value = {
         currentRender,
-        setCurrentRender,
         handleSetCurrentRender,
     };
 

@@ -1,22 +1,10 @@
 import React from "react";
 import Select from "react-select";
-import { DeleteIcon } from "./utils/icons.jsx";
+import { DeleteIcon } from "../utils/icons.jsx";
+import { commonSelectProps } from "../utils/CommonCSS.jsx";
 
 export const MySelect = ({ property, value, options, handleInputChange }) => {
-    const commonSelectProps = {
-        menuPortalTarget: typeof document !== 'undefined' ? document.body : null,
-        menuPosition: 'absolute',
-        styles: {
-            menuPortal: base => ({ ...base, zIndex: 10000 }),
-            control: base => ({ ...base, minHeight: '42px', maxHeight: '65px', overflowY: 'auto' }),
-            valueContainer: base => ({ ...base, maxHeight: '65px', overflowY: 'auto' }),
-            menu: base => ({ ...base, maxHeight: '200px', overflowY: 'auto', zIndex: 10000 }),
-            menuList: base => ({ ...base, maxHeight: '200px', overflowY: 'auto', scrollbarWidth: 'none', zIndex: 10000 }),
-            indicatorSeparator: base => ({ ...base, display: 'none' }),
-            indicatorsContainer: base => ({ ...base,  }),
-            multiValue: base => ({ ...base, maxWidth: '95%' }),
-        }
-    };
+
     return (
         <Select
             id={property.name}
@@ -42,44 +30,6 @@ export const MySelect = ({ property, value, options, handleInputChange }) => {
             maxMenuHeight={200}  // Maximum height before scrolling starts
             menuPlacement="auto" // Smart positioning
             {...commonSelectProps}
-            // styles={{
-            //     control: (base) => ({
-            //         ...base,
-            //         minHeight: '42px', // Minimum height
-            //         maxHeight: '65px', // Maximum height before control scroll
-            //         overflowY: 'auto', // Enable scroll in control
-            //         scrollbarWidth: 'none', // Control scrollbar width
-            //     }),
-
-            //     valueContainer: (base) => ({
-            //         ...base,
-            //         maxHeight: '65px',
-            //         marginRight: '5%',
-            //         overflowY: 'auto',
-            //         scrollbarWidth: 'none',
-            //     }),
-            //     indicatorsContainer: (base) => ({
-            //         ...base,
-            //         position: 'absolute',
-            //         right: '0',
-            //         top: '0',
-            //         height: '100%',
-            //     }),
-            //     menu: (base) => ({
-            //         ...base,
-            //         maxHeight: '200px', // Match maxMenuHeight
-            //         scrollbarWidth: 'none',
-            //     }),
-            //     multiValue: (base) => ({
-            //         ...base,
-            //         maxWidth: '95%', // Prevent overflow of selected items
-            //     }),
-            //     menuList: (base) => ({
-            //         ...base,
-            //         maxHeight: '200px', // Match maxMenuHeight
-            //         scrollbarWidth: 'none',
-            //     })
-            // }}
         />
     );
 };
@@ -95,7 +45,7 @@ export const MyInput = ({ property, value, handleInputChange }) => {
             required={property.isRequired}
             value={value}
             onChange={e => handleInputChange(property.name, e.target.value)}
-            className="mt-1 p-2 border rounded-md focus:ring focus:ring-opacity-50"
+            className="mt-1 p-2 border border-gray-300 dark:border-slate-700 rounded-md focus:ring focus:ring-opacity-50"
         />
     );
 };
@@ -157,6 +107,7 @@ export const MyMultiItem = ({
                                 onChange={(selected) => handleChange(el.name, selected)}
                                 placeholder={`Select ${el.label}`}
                                 className="w-full"
+                                {...commonSelectProps}
                             />
                         )}
                         {/* Extend for other types if needed */}

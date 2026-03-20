@@ -1,8 +1,9 @@
 // src/components/certificatesPage.jsx
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import api from '../api/apiCall';
 import NoDataAvailable from '../utils/NoDataUi';
 import { Search } from 'lucide-react';
+import { ContentLoading } from '../globalLoading';
 
 // Helper Functions
 const formatDate = (isoString) => {
@@ -17,11 +18,11 @@ const formatDate = (isoString) => {
 
 const getPhaseColor = (phase) => {
     switch (phase.toLowerCase()) {
-        case 'site': return { bg: 'bg-green-100', text: 'text-green-800' };
-        case 'dispatch': return { bg: 'bg-blue-100', text: 'text-blue-800' };
-        case 'store': return { bg: 'bg-purple-100', text: 'text-purple-800' };
-        case 'upload': return { bg: 'bg-yellow-100', text: 'text-yellow-800' };
-        default: return { bg: 'bg-gray-100', text: 'text-gray-800' };
+        case 'site': return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-300' };
+        case 'dispatch': return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300' };
+        case 'store': return { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300' };
+        case 'upload': return { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-300' };
+        default: return { bg: 'bg-gray-100 dark:bg-slate-800', text: 'text-gray-800 dark:text-slate-200' };
     }
 };
 
@@ -29,9 +30,6 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
     const { page, limit, totalPages, total } = pagination;
 
     if (totalPages < 1) return null;
-
-    const startItem = (page - 1) * limit + 1;
-    const endItem = Math.min(page * limit, total);
 
     // Logic to display a reasonable number of page buttons (max 5)
     const pageNumbers = [];
@@ -51,7 +49,7 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
     const PageButton = ({ p, current }) => (
         <button
             onClick={() => onPageChange(p)}
-            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border transition duration-150 ease-in-out ${current ? 'bg-teal-600 text-white border-teal-600 shadow-md z-10' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            className={`relative inline-flex items-center px-4 py-2 text-sm font-medium border transition duration-150 ease-in-out ${current ? 'bg-teal-600 dark:bg-teal-500 text-white border-teal-600 dark:border-teal-500 shadow-md z-10' : 'bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 border-gray-300 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-700'
                 }`}
             aria-current={current ? 'page' : undefined}
             aria-label={`Go to page ${p}`}
@@ -61,20 +59,20 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
     );
 
     return (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 mt-auto">
+        <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800 sm:px-6 mt-auto">
             {/* Mobile View */}
             <div className="flex-1 flex justify-between sm:hidden">
                 <button
                     onClick={() => onPageChange(page - 1)}
                     disabled={page === 1}
-                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-700 text-sm font-medium rounded-md text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                 >
                     Previous
                 </button>
                 <button
                     onClick={() => onPageChange(page + 1)}
                     disabled={page === totalPages}
-                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-700 text-sm font-medium rounded-md text-gray-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                 >
                     Next
                 </button>
@@ -83,22 +81,22 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
             {/* Desktop View */}
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div className="flex items-center space-x-2">
-                    <label htmlFor="limit" className="text-sm text-gray-600 hidden sm:inline">Show</label>
+                    <label htmlFor="limit" className="text-sm text-gray-600 dark:text-slate-400 hidden sm:inline">Show</label>
                     <select
                         id="limit"
                         value={limit}
                         onChange={(e) => onLimitChange(Number(e.target.value))}
-                        className="block w-full pl-3 pr-10 py-1 text-sm border-gray-300 focus:outline-none focus:ring-teal-500 focus:border-teal-500 rounded-md bg-white shadow-sm"
+                        className="block w-full pl-3 pr-10 py-1 text-sm border-gray-300 dark:border-slate-700 focus:outline-none focus:ring-teal-500 focus:border-teal-500 rounded-md bg-white dark:bg-slate-800 dark:text-slate-200 shadow-sm"
                     >
-                        {[5, 10, 20, 50].map((val) => (
+                        {[7, 10, 20, 50].map((val) => (
                             <option key={val} value={val}>{val}</option>
                         ))}
                     </select>
-                    <span className="text-sm text-gray-600">entries</span>
+                    <span className="text-sm text-gray-600 dark:text-slate-400">entries</span>
                 </div>
                 <div>
-                    <p className="text-sm text-gray-700">
-                        Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{' '}
+                    <p className="text-sm text-gray-700 dark:text-slate-300">
+                        Showing <span className="font-medium">{(page - 1) * limit + 1}</span> to <span className="font-medium">{Math.min(page * limit, total)}</span> of{' '}
                         <span className="font-medium">{total}</span> results
                     </p>
                 </div>
@@ -108,7 +106,7 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
                         <button
                             onClick={() => onPageChange(page - 1)}
                             disabled={page === 1}
-                            className="relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                         >
                             <span className="sr-only">Previous</span>
                             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -125,7 +123,7 @@ const Pagination = ({ pagination, onPageChange, onLimitChange }) => {
                         <button
                             onClick={() => onPageChange(page + 1)}
                             disabled={page === totalPages}
-                            className="relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-medium text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50"
                         >
                             <span className="sr-only">Next</span>
                             <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -157,26 +155,26 @@ const ReportTable = ({ data = [] }) => {
     return (
         // Set a min-width to ensure the table content doesn't shrink too much
         <div className="flex-1 overflow-y-auto min-h-0">
-            <table className="min-w-full divide-y divide-gray-200 table-fixed">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-slate-800 table-fixed">
 
                 {/* Table Header */}
-                <thead className="sticky top-0 z-10 bg-gray-100">
+                <thead className="sticky top-0 z-10 bg-gray-100 dark:bg-slate-800">
                     <tr>
                         {/* PO Number */}
-                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tl-xl ${colWidths[0]}`}>PO Number</th>
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider rounded-tl-xl ${colWidths[0]}`}>PO Number</th>
                         {/* PO ID REMOVED */}
                         {/* Issue Date */}
-                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[1]}`}>Issue Date</th>
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider ${colWidths[1]}`}>Issue Date</th>
                         {/* Created Date */}
-                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[2]}`}>Created Date</th>
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider ${colWidths[2]}`}>Created Date</th>
                         {/* Available Phases */}
-                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider ${colWidths[3]}`}>Available Phases</th>
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider ${colWidths[3]}`}>Available Phases</th>
                         {/* Action */}
-                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider rounded-tr-xl ${colWidths[4]}`}>Action</th>
+                        <th className={`px-6 py-3 text-left text-xs font-bold text-gray-600 dark:text-slate-300 uppercase tracking-wider rounded-tr-xl ${colWidths[4]}`}>Action</th>
                     </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                     {data?.map(po => (
                         // PO ID column will be excluded in TableRow as well
                         <TableRow key={po.po_number} po={po} />
@@ -201,10 +199,10 @@ const TableRow = ({ po }) => {
     });
 
     return (
-        <tr className="hover:bg-gray-50 transition duration-150 ease-in-out">
-            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{po.po_number}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(po.po_date_of_issue)}</td>
-            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(po.po_created_at)}</td>
+        <tr className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition duration-150 ease-in-out">
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-slate-100">{po.po_number}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">{formatDate(po.po_date_of_issue)}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-slate-400">{formatDate(po.po_created_at)}</td>
             <td className="px-6 py-4">{phaseTags}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <ViewReportsButton poId={po.po_id} poNumber={po.po_number} reportCount={po.count} />
@@ -255,16 +253,16 @@ const ViewReportsButton = ({ poId, poNumber, reportCount }) => {
 
 const ReportModal = ({ reports, poNumber, onClose }) => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black bg-opacity-60 backdrop-blur-sm transition-opacity duration-300">
-            <div className="relative bg-white w-full max-w-4xl p-6 rounded-xl shadow-2xl mx-4 animate-slide-down">
+        <div className="fixed inset-0 z-50 flex items-center justify-center min-h-screen bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+            <div className="relative bg-white dark:bg-slate-900 w-full max-w-4xl p-6 rounded-xl shadow-2xl mx-4 animate-slide-down border dark:border-slate-800">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-900 text-2xl font-semibold"
+                    className="absolute top-4 right-4 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 text-2xl font-semibold transition-colors"
                     aria-label="Close"
                 >
                     &times;
                 </button>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 pb-2 border-b">
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-slate-100 mb-4 pb-2 border-b dark:border-slate-800">
                     Documents for PO: {poNumber}
                 </h3>
                 <div className="max-h-[70vh] overflow-y-auto pr-2 space-y-6">
@@ -289,15 +287,15 @@ const PhaseSection = ({ phase, reports }) => {
                 href={report.pdf}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col p-3 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md hover:border-teal-400 transition duration-150 ease-in-out text-left"
+                className="flex flex-col p-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg shadow-sm hover:shadow-md hover:border-teal-400 dark:hover:border-teal-600 transition duration-150 ease-in-out text-left"
             >
                 <div className="flex items-start justify-between">
-                    <span className="text-sm font-medium text-gray-700 truncate">{filename}</span>
-                    <svg className="w-4 h-4 text-teal-600 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <span className="text-sm font-medium text-gray-700 dark:text-slate-200 truncate">{filename}</span>
+                    <svg className="w-4 h-4 text-teal-600 dark:text-teal-400 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4m-4-2h8m0 0l-3-3m3 3l-3 3"></path>
                     </svg>
                 </div>
-                <span className="mt-1 text-xs text-gray-500">
+                <span className="mt-1 text-xs text-gray-500 dark:text-slate-400">
                     Created: {formatDate(report.pdf_created_at)}
                 </span>
             </a>
@@ -305,12 +303,12 @@ const PhaseSection = ({ phase, reports }) => {
     });
 
     return (
-        <div className="p-4 rounded-xl border border-gray-100 shadow-lg">
+        <div className="p-4 rounded-xl border border-gray-100 dark:border-slate-800 shadow-lg bg-gray-50/50 dark:bg-slate-800/20">
             <div className="flex items-center mb-3">
-                <span className={`text-lg font-semibold px-3 py-1 rounded-full ${colors.bg} ${colors.text} shadow-sm`}>
+                <span className={`text-lg font-semibold px-3 py-1 rounded-full ${colors.bg} ${colors.text} shadow-sm border dark:border-slate-700`}>
                     {phase} Reports
                 </span>
-                <span className="ml-3 text-sm text-gray-500">({reports.length} files)</span>
+                <span className="ml-3 text-sm text-gray-500 dark:text-slate-400">({reports.length} files)</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {links}
@@ -319,59 +317,66 @@ const PhaseSection = ({ phase, reports }) => {
     );
 };
 
-const PurchaseOrderReportsDashboard = ({ data, pagination, onPageChange, onLimitChange, search, setSearch }) => {
+const PurchaseOrderReportsDashboard = () => {
+    const [data, setData] = useState([]);
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [total, setTotal] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [search, setSearch] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            const params = {
+                page,
+                limit,
+                search,
+            };
+            try {
+                const response = await api.get(`/api/po_details_for_pdf`, { params });
+                const { data, pagination } = response.data;
+                setData(data || []);
+                setTotal(pagination.total || 0);
+                setTotalPages(pagination.totalPages || 0);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                setError(error?.response?.data?.message || error?.response?.data?.error || "Unable to connect to the server. Please check your connection and try again later.")
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, [page, limit, search]);
     return (
-        <div className="p-4 sm:p-2 h-[80vh]">
-            <div className="max-w-7xl mx-auto h-full flex flex-col">
-                {/* Header */}
-                <div className="flex items-center mb-4 justify-between gap-4 text-gray-500 border-b-2">
-                    <header className="flex-shrink-0">
-                        <h3 className="font-bold text-gray-500">Purchase Order Certificates</h3>
-                    </header>
+        <div className="max-w-7xl mx-auto h-full flex flex-col py-6 px-4">
+            {/* Header */}
+            <div className="flex items-center mb-4 justify-between gap-4 text-gray-500 dark:text-slate-400 border-b-2 dark:border-slate-800 pb-2">
+                <header className="flex-shrink-0">
+                    <h3 className="font-bold text-gray-500 dark:text-slate-300">Purchase Order Certificates</h3>
+                </header>
 
-                    <div className="relative w-full hidden md:block md:w-auto">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <input
-                            type="text"
-                            placeholder="Search RMA"
-                            className="w-full py-1 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out text-sm"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
+                <div className="relative w-full hidden md:block md:w-auto">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
+                    <input
+                        type="text"
+                        placeholder="Search PO"
+                        className="w-full py-1 pl-10 pr-4 border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition duration-150 ease-in-out text-sm"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
                 </div>
-
-                {/* Main Content */}
-                {Array.isArray(data) && data.length === 0 ? (
-                    <NoDataAvailable />
-                ) : (
-                    <div className="bg-white shadow-xl rounded-xl overflow-hidden flex flex-col h-full border border-gray-200">
-                        <ReportTable data={data} pagination={pagination} />
-                        <Pagination pagination={pagination} onPageChange={onPageChange} onLimitChange={onLimitChange} />
-                    </div>
-                )}
             </div>
 
-            {/* Global Styles */}
-            <style jsx global>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-        body {
-          background-color: #f7f9fb;
-        }
-        @keyframes slide-down {
-          0% { transform: translateY(-50px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
-        }
-        .animate-slide-down {
-          animation: slide-down 0.3s ease-out;
-        }
-          .overflow-y-auto::-webkit-scrollbar {
-                    width: 6px;
-                }
-          .overflow-y-auto::-webkit-scrollbar-thumb {
-                    background-color: #cbd5e1;
-                    border-radius: 10px;
-                }
-      `}</style>
+            {/* Main Content */}
+            {(
+                <div className="bg-white dark:bg-slate-900 shadow-xl rounded-xl overflow-hidden flex flex-col h-full border border-gray-200 dark:border-slate-800">
+                    {loading ? <ContentLoading /> : Array.isArray(data) && data.length > 0 ? <ReportTable data={data} /> : <NoDataAvailable title={error ? 'Data Fetch Error' : 'No Data Found'} explanation={error} />}
+                    <Pagination pagination={{ page, limit, totalPages, total }} onPageChange={setPage} onLimitChange={(limit) => { setLimit(limit); setPage(1) }} />
+                </div>
+            )}
         </div>
     );
 };

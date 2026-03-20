@@ -5,6 +5,7 @@ import AsyncSelect from 'react-select/async';
 import { commonSelectProps } from '../../utils/CommonCSS';
 import api from '../../api/apiCall';
 import { useToast } from '../../context/toastProvider';
+import { useAuth } from '../../context/authContext';
 
 const InitiateRmaForm = ({ onRmaSubmit }) => {
     // State for Item Lookup and UI Flow
@@ -12,6 +13,8 @@ const InitiateRmaForm = ({ onRmaSubmit }) => {
     const [isLoadingItem, setIsLoadingItem] = useState(false); // Tracks S/N lookup status
     const [fetchError, setFetchError] = useState(null); // Stores S/N lookup error message
     const [showManualForm, setShowManualForm] = useState(false); // Allows user to bypass lookup
+    const { groups } = useAuth();
+    const isRelationshipEngineer = groups.includes('item-inspection-relation-engineer');
 
     // Form Data State
     const [formData, setFormData] = useState({
@@ -166,11 +169,11 @@ const InitiateRmaForm = ({ onRmaSubmit }) => {
     };
 
     // Determine if the main form section should be visible
-    const isFormUnlocked = itemDetails || showManualForm;
+    const isFormUnlocked = (itemDetails || showManualForm) && isRelationshipEngineer;
 
     return (
-        <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <div className="bg-white    dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-gray-100 dark:border-slate-800">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                 <FileText className="w-6 h-6 mr-2 text-blue-600" />
                 Initiate New RMA Request
             </h2>
@@ -216,7 +219,7 @@ const InitiateRmaForm = ({ onRmaSubmit }) => {
 
                     {/* --- FEEDBACK / ERROR SECTION --- */}
                     {fetchError && !isLoadingItem && (
-                        <div className="md:col-span-2 p-3 bg-red-50 border-l-4 border-red-400 text-red-700 rounded mb-4 shadow-sm">
+                        <div className="md:col-span-2 p-3 bg-red-50 dark:bg-red-900 border-l-4 border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded mb-4 shadow-sm">
                             <div className="flex items-center">
                                 <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0" />
                                 <p className="font-semibold">S/N Not Found:</p>
@@ -235,23 +238,34 @@ const InitiateRmaForm = ({ onRmaSubmit }) => {
                     )}
 
                     {itemDetails && (
-                        <div className="md:col-span-2 flex flex-wrap items-center gap-2 p-2 bg-blue-50/50 border border-blue-100 rounded-xl">
-                            <div className="flex items-center bg-white px-3 py-1 rounded-full shadow-sm border border-blue-200">
-                                <CheckCircle className="w-4 h-4 text-blue-500 mr-2" />
-                                <span className="text-sm font-bold text-blue-900">Found:</span>
-                            </div>
+                        <>
+                            <div className="md:col-span-2 flex flex-wrap items-center gap-2 p-2 bg-blue-50/50 dark:bg-slate-800 border border-blue-100 dark:border-slate-700 rounded-xl">
+                                <div className="flex items-center bg-white dark:bg-slate-900 px-3 py-1 rounded-full shadow-sm border border-blue-200 dark:border-slate-700">
+                                    <CheckCircle className="w-4 h-4 text-blue-500 mr-2" />
+                                    <span className="text-sm font-bold text-blue-900 dark:text-blue-400">Found:</span>
+                                </div>
 
-                            {[
-                                { label: 'Type', value: itemDetails.item_type_name },
-                                { label: 'Make', value: itemDetails.item_make_name },
-                                { label: 'Model', value: itemDetails.item_model_name },
-                                { label: 'Part', value: itemDetails.item_part_code },
-                            ].map((spec, i) => (
-                                <span key={i} className="px-3 py-1 bg-white border border-gray-200 rounded-full text-sm shadow-sm">
-                                    <span className="text-gray-500">{spec.label}:</span> <span className="font-semibold text-gray-800">{spec.value || 'N/A'}</span>
-                                </span>
-                            ))}
-                        </div>
+                                {[
+                                    { label: 'Type', value: itemDetails.item_type_name },
+                                    { label: 'Make', value: itemDetails.item_make_name },
+                                    { label: 'Model', value: itemDetails.item_model_name },
+                                    { label: 'Part', value: itemDetails.item_part_code },
+                                ].map((spec, i) => (
+                                    <span key={i} className="px-3 py-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-full text-sm shadow-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">{spec.label}:</span> <span className="font-semibold text-gray-800 dark:text-white">{spec.value || 'N/A'}</span>
+                                    </span>
+                                ))}
+                            </div>
+                            {!isRelationshipEngineer && (
+                                <div className="md:col-span-2 p-3 bg-red-50 dark:bg-red-900 border-l-4 border-red-400 dark:border-red-600 text-red-700 dark:text-red-200 rounded mb-4 shadow-sm">
+                                    <div className="flex items-center">
+                                        <AlertTriangle className="w-5 h-5 mr-2 flex-shrink-0" />
+                                        <p className="font-semibold">Unauthorized to create RMA</p>
+                                    </div>
+                                    <p className="text-sm ml-7">You are not authorized to create RMA. Please contact your Relationship Engineer.</p>
+                                </div>
+                            )}
+                        </>
                     )}
 
 
